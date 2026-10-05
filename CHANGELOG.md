@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-06
+
+### Added
+- Module 07 "A full EXE, end to end" — a complete reverse-engineering walkthrough (English + Turkish).
+- Original, self-generated background art (no third-party image); eye logo across the app, site and icon.
+- Social preview banner and an animated demo GIF.
+- Unit tests (xUnit) for core logic, run in CI via `dotnet test`.
+- Release now ships a portable self-contained `.exe` (no .NET needed), a zip, and a smaller framework-dependent build.
+
+### Changed
+- License is now MIT with the Commons Clause: no selling, and attribution (author name + repository link) is required.
+
 ## [0.1.0] - 2026-10-06
 
 ### Added
@@ -24,3 +36,4 @@ All notable changes to this project are documented here. The format is based on
 [Unreleased]: https://github.com/Talkdedsec/tlk-hex/commits/main
 
 [0.1.0]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.1

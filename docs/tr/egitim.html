@@ -50,6 +50,7 @@
       <a href="#m4"><div class="pn">modül 04</div><h4>İlk analiz</h4><p>Bir fonksiyonu tlk-hex ile baştan sona çözelim.</p></a>
       <a href="#m5"><div class="pn">modül 05</div><h4>Akışı çıkar</h4><p>if / döngü / switch'i grafikten okuma.</p></a>
       <a href="#m6"><div class="pn">modül 06</div><h4>Pratik</h4><p>Nerede, neyle çalışılır; meşru alıştırma kaynakları.</p></a>
+      <a href="#m7"><div class="pn">modül 07</div><h4>Baştan sona bir EXE</h4><p>Her şeyi tek gerçek analiz akışında birleştir: string → xref → karar → doğrula.</p></a>
     </div>
   </div>
 </section>
@@ -66,6 +67,7 @@
       <a href="#m4"><span class="mn">04</span>İlk analiz</a>
       <a href="#m5"><span class="mn">05</span>Akışı çıkar</a>
       <a href="#m6"><span class="mn">06</span>Pratik</a>
+      <a href="#m7"><span class="mn">07</span>Baştan sona bir EXE</a>
       <a href="#sozluk"><span class="mn">··</span>Sözlük</a>
     </aside>
 
@@ -271,6 +273,264 @@
       </div>
 
       <!-- SÖZLÜK -->
+      <div class="mod" id="m7">
+        <div class="mod-tag">modül 07</div>
+        <h2>Baştan sona bir EXE'yi çözmek <span class="lvl i">orta</span></h2>
+        <p>Buraya kadar parçaları ayrı ayrı gördük: string'ler, import'lar, xref'ler, assembly, graph ve pseudocode.
+        Şimdi hepsini <b>tek bir gerçek analiz akışında</b> birleştireceğiz. Acele etme — bu modülün amacı hız değil,
+        bir binary'ye nasıl <i>soru sorulacağını</i> kavramak.</p>
+        <p>Elimizde kaynak kod yokmuş gibi davranacağız ve şu sorulara yalnızca dosyanın kendisinden cevap arayacağız:</p>
+        <ul>
+          <li>Program hangi girdiyle ilgileniyor?</li>
+          <li>Kararı hangi fonksiyon veriyor?</li>
+          <li>Hangi koşul hangi sonuca gidiyor?</li>
+          <li>Fonksiyonlar birbirine nasıl bağlanıyor?</li>
+          <li>Ve en önemlisi: bulduğumuzun <b>doğru</b> olduğunu nasıl kanıtlarız?</li>
+        </ul>
+        <div class="note">Bu alıştırmada <b>kendi derlediğimiz</b> küçük bir EXE kullanıyoruz. Böylece analiz tamamen
+        güvenli, yasal ve <b>doğrulanabilir</b>: sonunda bulduğumuzu gerçek kaynakla karşılaştırabiliriz.</div>
+
+        <h3>1 · Hedef programı oluştur</h3>
+        <p>Önce analiz edeceğimiz küçük programı yazıyoruz. Bir <code class="i">sample.c</code> dosyası aç:</p>
+        <div class="code"><div class="hdr">sample.c</div><pre><span class="cm">#include &lt;stdio.h&gt;</span>
+<span class="cm">#include &lt;string.h&gt;</span>
+
+<span class="kw">static int</span> classify(<span class="kw">const char</span> *mode)
+{
+    <span class="kw">if</span> (strcmp(mode, <span class="st">"debug"</span>) == 0)
+        <span class="kw">return</span> 2;
+    <span class="kw">if</span> (strcmp(mode, <span class="st">"safe"</span>) == 0)
+        <span class="kw">return</span> 1;
+    <span class="kw">return</span> 0;
+}
+
+<span class="kw">int</span> main(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    <span class="kw">const char</span> *mode = argc &gt; 1 ? argv[1] : <span class="st">"safe"</span>;
+    <span class="kw">int</span> result = classify(mode);
+    printf(<span class="st">"mode=%s result=%d\n"</span>, mode, result);
+    <span class="kw">return</span> result;
+}</pre></div>
+        <p>Programın ne yaptığını şimdilik <b>kafandan sil</b>. Kaynağı yalnızca hedefi üretmek için kullanıyoruz;
+        EXE hazır olduktan sonra ona sadece binary tarafından bakacağız. Derlemek için (hangisi eldeyse):</p>
+        <div class="code"><div class="hdr">MSVC (Developer Command Prompt)</div><pre>cl /O2 /Fe:sample.exe sample.c</pre></div>
+        <div class="code"><div class="hdr">MinGW-w64</div><pre>gcc -O2 -o sample.exe sample.c</pre></div>
+        <p>Artık elimizde <code class="i">sample.exe</code> var. Bundan sonra <b>kaynağı kapat</b>.</p>
+
+        <h3>2 · Aç ve önce haritayı çıkar</h3>
+        <p><code class="i">sample.exe</code>'i tlk-hex penceresine sürükle. Otomatik analiz başlar ve bölümleri,
+        fonksiyonları, çağrıları, string'leri, xref'leri ve import'ları çıkarır.</p>
+        <p>Analiz bitince <b>hemen assembly okumaya dalma.</b> Önce dosyanın genel havasını al. Tersine mühendislikte
+        ilk hedef ayrıntı değil, <b>bağlamdır</b> — nerede olduğunu bilmeden tek tek komut okumak seni yorar.</p>
+
+        <h3>3 · Önce string'lere bak</h3>
+        <p><kbd>Shift</kbd>+<kbd>F12</kbd> ile Strings'i aç. Şuna benzer metinler ararsın:</p>
+        <div class="code"><div class="hdr">Strings</div><pre><span class="st">debug</span>
+<span class="st">safe</span>
+<span class="st">mode=%s result=%d</span></pre></div>
+        <p>Bu üç satır, daha tek bir assembly komutu okumadan bize çok şey anlatıyor. <code class="i">debug</code> ve
+        <code class="i">safe</code> büyük ihtimalle kullanıcı girdisiyle <b>karşılaştırılan</b> değerler;
+        <code class="i">mode=%s result=%d</code> ise programın sonunda bir <b>sonuç yazdırdığını</b> düşündürüyor.</p>
+        <div class="note warn">Ama bunlar şimdilik yalnızca <b>hipotez</b>. Tersine mühendisliğin altın kuralı:
+        <i>bir şey mantıklı görünüyor diye doğru sayma; xref ve kontrol akışıyla doğrula.</i></div>
+
+        <h3>4 · String'den koda git (xref)</h3>
+        <p><code class="i">debug</code> string'ini seç ve <kbd>X</kbd>'e bas. Bu, string'in <b>nerede kullanıldığını</b>
+        (cross-reference) gösterir. Bir kod referansına git. Aynısını <code class="i">safe</code> için de yap.</p>
+        <p>İki string'in referanslarının <b>aynı fonksiyona</b> ya da birbirine çok yakın kod alanlarına gittiğini
+        görürsün. Bu güçlü bir ipucu:</p>
+        <div class="note">Bu fonksiyon büyük olasılıkla gelen değeri <code class="i">"debug"</code> ve
+        <code class="i">"safe"</code> ile karşılaştırıyor.</div>
+
+        <h3>5 · Import'lara bak, kanıtları birleştir</h3>
+        <p>Şimdi programın dışarıdan kullandığı fonksiyonlara bak. Derleyiciye göre isimler biraz değişse de şunları
+        görürsün:</p>
+        <table class="tbl">
+          <tr><th>Import</th><th>Ne yapar</th></tr>
+          <tr><td>strcmp</td><td>İki C string'ini karşılaştırır (eşitse 0 döner)</td></tr>
+          <tr><td>printf</td><td>Biçimlendirilmiş metni ekrana yazar</td></tr>
+        </table>
+        <p>Artık üç bağımsız kanıt birikti: <code class="i">"debug"</code>, <code class="i">"safe"</code> ve
+        <code class="i">strcmp</code>. Üçü birlikte güçlü bir ihtimale işaret ediyor: <i>program bir string'i
+        "debug" ve "safe" ile karşılaştırıyor.</i> Yine de assembly'de görmeden emin olmayacağız.</p>
+
+        <h3>6 · Kararı veren fonksiyonu oku</h3>
+        <p><code class="i">debug</code> xref'inden ulaştığın fonksiyonun başına git. Otomatik adı
+        <code class="i">sub_140001000</code> gibi olabilir — gerçek ismini henüz bilmiyoruz. İçeride şuna benzer bir
+        kalıp görürsün (tam komutlar derleyiciye göre değişir, önemli olan <b>kalıbı</b> okumak):</p>
+        <div class="code"><div class="hdr">karşılaştırma kalıbı</div><pre><span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aDebug</span>        <span class="cm">; ikinci argüman: "debug"</span>
+<span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>          <span class="cm">; ilk argüman: gelen girdi</span>
+<span class="m">call</span>    <span class="nm">strcmp</span>            <span class="cm">; strcmp(girdi, "debug")</span>
+<span class="m">test</span>    <span class="r">eax</span>, <span class="r">eax</span>          <span class="cm">; dönüş 0 mı? (eşit mi?)</span>
+<span class="m">jz</span>      <span class="nm">loc_debug</span>         <span class="cm">; eşitse debug bloğuna atla</span></pre></div>
+        <p>İlk iki satır <code class="i">strcmp</code>'nin argümanlarını hazırlar. <code class="i">strcmp</code> iki string
+        aynıysa <b>0</b> döndürür; <code class="i">test eax, eax</code> sonucun sıfır olup olmadığına bakar ve
+        <code class="i">jz</code> (sıfırsa atla) ilgili bloğa gider. Yani buradaki mantık net:</p>
+        <div class="code"><div class="hdr">C karşılığı</div><pre><span class="kw">if</span> (strcmp(input, <span class="st">"debug"</span>) == 0)</pre></div>
+
+        <h3>7 · Fonksiyona anlamlı isim ver</h3>
+        <p>Ne yaptığını artık yaklaşık biliyoruz. Fonksiyonun üstünde <kbd>N</kbd>'ye basıp
+        <code class="i">sub_140001000</code> yerine <code class="i">classify_mode</code> yaz.</p>
+        <p>İsimlendirme lüks değil, <b>yöntemin kalbidir</b>. Başta ekranda onlarca
+        <code class="i">sub_140001000</code> görürsün; bunları <code class="i">classify_mode</code>,
+        <code class="i">print_result</code>, <code class="i">load_config</code> gibi adlara çevirdikçe dosya her geçişte
+        biraz daha okunur hale gelir.</p>
+
+        <h3>8 · Graph'a geç, akışı gör</h3>
+        <p>Fonksiyonun içindeyken <kbd>Space</kbd>'e bas; metin yerine <b>akış grafiğini</b> görürsün. Bu örnekte kabaca
+        şöyle bir karar ağacı bekliyoruz:</p>
+        <div class="code"><div class="hdr">beklenen karar yapısı</div><pre>                girdi
+                  │
+                  ▼
+          girdi == "debug"?
+           ┌──────┴──────┐
+         evet           hayır
+           │              │
+           ▼              ▼
+       return 2    girdi == "safe"?
+                    ┌─────┴─────┐
+                  evet         hayır
+                    │            │
+                    ▼            ▼
+                return 1     return 0</pre></div>
+        <p>Assembly'de karmaşık görünen şey, grafikte bir bakışta anlaşılır. İlk karşılaştırmanın <b>hayır (false)</b>
+        yolunu takip edince, bir süre sonra <code class="i">"safe"</code> string'inin kullanıldığı <b>ikinci bir
+        karşılaştırma</b> görürsün — mantığı birebir aynı:</p>
+        <div class="code"><div class="hdr">ikinci karşılaştırma</div><pre><span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aSafe</span>
+<span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>
+<span class="m">call</span>    <span class="nm">strcmp</span>
+<span class="m">test</span>    <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">jz</span>      <span class="nm">loc_safe</span>          <span class="cm">; if (strcmp(input, "safe") == 0)</span></pre></div>
+
+        <h3>9 · Return değerlerini takip et</h3>
+        <p>Şimdi her yolun sonunda hangi değerin döndüğüne bak. x64 Windows'ta tamsayı dönüş değeri
+        <code class="i">eax</code> register'ından döner:</p>
+        <div class="code"><div class="hdr">dönüş değerleri</div><pre><span class="m">mov</span>     <span class="r">eax</span>, <span class="n">2</span>
+<span class="m">ret</span>                     <span class="cm">; return 2;  (debug yolu)</span>
+
+<span class="m">mov</span>     <span class="r">eax</span>, <span class="n">1</span>
+<span class="m">ret</span>                     <span class="cm">; return 1;  (safe yolu)</span>
+
+<span class="m">xor</span>     <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">ret</span>                     <span class="cm">; return 0;  (xor = sıfırla; varsayılan yol)</span></pre></div>
+        <p><code class="i">xor eax, eax</code> register'ı sıfırlar — yani <code class="i">return 0;</code> demek. Bu küçük
+        kalıbı tanımak çok işine yarayacak, her yerde görürsün.</p>
+
+        <h3>10 · Mantığı yeniden kur ve F5 ile karşılaştır</h3>
+        <p>Topladığımız kanıtları birleştirince binary bize şunu söylüyor:</p>
+        <div class="code"><div class="hdr">çıkardığımız mantık</div><pre><span class="kw">int</span> classify_mode(<span class="kw">const char</span> *input)
+{
+    <span class="kw">if</span> (strcmp(input, <span class="st">"debug"</span>) == 0)
+        <span class="kw">return</span> 2;
+    <span class="kw">if</span> (strcmp(input, <span class="st">"safe"</span>) == 0)
+        <span class="kw">return</span> 1;
+    <span class="kw">return</span> 0;
+}</pre></div>
+        <p>Kaynak elimizde olmadan fonksiyonun davranışını çıkardık — tersine mühendisliğin asıl amacı da bu:
+        <b>kaynağı birebir geri almak değil, davranışı yeterince doğru anlamak.</b></p>
+        <p>Şimdi <kbd>F5</kbd>'e bas; tlk-hex aynı fonksiyonu C benzeri pseudocode'a çevirir ve senin elle çıkardığın
+        mantığa çok yakın bir şey gösterir. Hızlıdır ama bir uyarı:</p>
+        <div class="note warn">Decompiler çıktısı <b>gerçek kaynak kod değildir.</b> Derleyici optimizasyonları, kaybolan
+        tip bilgisi ve register yeniden kullanımı yüzünden yanlış ya da eksik olabilir. Önemli sonuçları her zaman
+        assembly ve graph'tan doğrula. İdeal sıra: <i>pseudocode ile fikri edin → graph ile akışı kontrol et →
+        assembly ile kanıtla.</i></div>
+
+        <h3>11 · Nereden çağrılıyor + çıktı zinciri</h3>
+        <p><code class="i">classify_mode</code>'un üstünde yine <kbd>X</kbd>'e bas — bu sefer fonksiyonun <b>nereden
+        çağrıldığını</b> görürsün. Muhtemelen <code class="i">main</code>'e ya da ona yakın bir yere çıkarsın:</p>
+        <div class="code"><div class="hdr">çağrı yeri</div><pre><span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>          <span class="cm">; girdi</span>
+<span class="m">call</span>    <span class="nm">classify_mode</span>
+<span class="m">mov</span>     <span class="r">esi</span>, <span class="r">eax</span>          <span class="cm">; dönüş değerini sakla (sonra kullanılacak)</span></pre></div>
+        <p>Sonra tekrar Strings'e git, <code class="i">mode=%s result=%d</code> string'ini <kbd>X</kbd> ile takip et;
+        yakınında bir <code class="i">printf</code> çağrısı görürsün. Böylece programın bütün zincirini çıkardık:</p>
+        <div class="code"><div class="hdr">programın akışı</div><pre>komut satırı girdisi  →  classify_mode  →  0 / 1 / 2  →  printf  →  çıkış</pre></div>
+
+        <h3>12 · İsimlendir, yorumla, kaydet</h3>
+        <p>Bulduklarını kalıcı hale getir:</p>
+        <ul>
+          <li><kbd>N</kbd> ile isimlendir: <code class="i">sub_140001000 → classify_mode</code>,
+              <code class="i">aDebug → mode_debug</code>, <code class="i">aSafe → mode_safe</code>…</li>
+          <li><kbd>;</kbd> ile önemli satırlara yorum düş: <i>"gelen mode'u 'debug' ile karşılaştırır"</i> ya da
+              <i>"varsayılan yol 0 döner"</i>.</li>
+          <li><kbd>Ctrl</kbd>+<kbd>W</kbd> ile kaydet. tlk-hex isim/yorum/çalışmayı ayrı tutar; <b>orijinal EXE değişmez</b>
+              ve dosyayı tekrar açınca kaldığın yerden devam edersin.</li>
+        </ul>
+        <p>Tersine mühendislik yalnızca binary okumak değil; bulduğunu <b>düzenli biçimde kaydetme</b> sürecidir.
+        İyi isimlenmiş bir veritabanı, birkaç saat sonra ilk açtığın halinden tamamen farklı — çok daha okunur — görünür.</p>
+
+        <h3>13 · Sonucu birkaç cümleyle yaz</h3>
+        <p>İyi bir çalışmanın sonunda kısa bir sonuç yazabilmelisin. Bu örnek için:</p>
+        <div class="code"><div class="hdr">analiz sonucu</div><pre>sample.exe komut satırından bir "mode" değeri alıyor.
+  mode == "debug"  →  sonuç = 2
+  mode == "safe"   →  sonuç = 1
+  diğer tüm değerler →  sonuç = 0
+Sonuç, "mode=%s result=%d" formatıyla printf ile ekrana yazdırılıyor.</pre></div>
+        <p>Kaynak koduna bakmadan programın temel davranışını çıkardık. İşte bütün mesele buydu.</p>
+
+        <h3>Her binary'de kullanacağın çalışma sırası</h3>
+        <p>Bu döngü neredeyse her dosyada işe yarar — ezberlemene gerek yok, birkaç kez yapınca kendiliğinden gelir:</p>
+        <div class="code"><div class="hdr">metodoloji</div><pre> 1. Dosyayı aç, otomatik analizi bekle
+ 2. Sections / imports / strings'e bak (bağlam)
+ 3. İlginç bir string veya import seç
+ 4. Xref (X) ile koda git
+ 5. Fonksiyonun graph'ını incele (Space)
+ 6. Call hedeflerini takip et
+ 7. Koşulları ve return değerlerini çıkar
+ 8. F5 pseudocode ile hızlı kontrol
+ 9. Assembly ile doğrula
+10. Fonksiyonlara isim ver (N)
+11. Yorum ekle (;)
+12. Kaydet (Ctrl+W)
+13. Sonucu birkaç cümleyle yaz</pre></div>
+
+        <h3>Bilinmeyen bir EXE'de ilk bakılacaklar</h3>
+        <p><b>String'ler</b> en güçlü ipuçlarıdır. Şunları görürsen dur ve <code class="i">string → X → fonksiyon</code>
+        zincirini izle:</p>
+        <div class="code"><div class="hdr">dikkat çeken string'ler</div><pre>error   failed   password   token   config
+login   connect  http       registry file   debug</pre></div>
+        <p><b>Import'lar</b> programın hangi yetenekleri kullandığını ele verir:</p>
+        <table class="tbl">
+          <tr><th>Import grubu</th><th>İşaret ettiği şey</th></tr>
+          <tr><td>CreateFileW · ReadFile · WriteFile</td><td>Dosya işlemleri</td></tr>
+          <tr><td>RegOpenKeyExW · RegSetValueExW</td><td>Registry kullanımı</td></tr>
+          <tr><td>connect · send · recv</td><td>Ağ haberleşmesi</td></tr>
+          <tr><td>CryptEncrypt · CryptDecrypt</td><td>Şifreleme</td></tr>
+        </table>
+        <div class="note">Tek bir import kesin sonuç vermez — kanıtları <b>birlikte</b> değerlendir. Bir fonksiyonu
+        anlamadıysan iki soru sor: <i>kimi çağırıyor?</i> ve <i>kim onu çağırıyor?</i> Xref bu ikisinin de cevabıdır.</div>
+
+        <h3>Statik analizin sınırı</h3>
+        <p>tlk-hex şu an ağırlıklı olarak <b>statik</b> analiz yapar — programı çalıştırmadan inceler. Bu yüzden
+        assembly analizi, fonksiyon keşfi, xref, string/import analizi, graph, pseudocode, PDB sembolleri, hex
+        inceleme ve yama hazırlama rahatça yapılır. Ama bazı şeyler saf statikle her zaman tam görülemez:</p>
+        <div class="code"><div class="hdr">dinamik analiz gereken durumlar</div><pre>runtime'da hesaplanan değerler
+bellekte açılan/çözülen şifreli kod
+self-modifying (kendini değiştiren) kod
+runtime unpacking (çalışırken açılan paketleyiciler)</pre></div>
+        <p>Böyle durumlarda bir debugger gibi <b>dinamik</b> araçlar devreye girer. Yine de işin büyük kısmı statik
+        başlar; ne arayacağını statik analizle bulup gerekirse dinamiğe geçersin.</p>
+
+        <h3>Son görev — kendin dene</h3>
+        <p>Örnek programı küçük bir değişiklikle yeniden derle (kaynağa tekrar <b>bakmadan</b> analiz etmeye çalış):</p>
+        <div class="code"><div class="hdr">sample.c — yeni satır ekle</div><pre><span class="kw">if</span> (strcmp(mode, <span class="st">"admin"</span>) == 0)
+    <span class="kw">return</span> 3;</pre></div>
+        <p>Yeni EXE'yi tlk-hex'te aç ve şunları <b>yalnızca binary üzerinden</b> bul:</p>
+        <ul>
+          <li>Yeni string hangisi?</li>
+          <li>Hangi fonksiyon kullanıyor?</li>
+          <li>Hangi koşuldan sonra çalışıyor?</li>
+          <li>Hangi değer dönüyor?</li>
+          <li>Graph'ta yeni dal (branch) nerede?</li>
+          <li>Pseudocode değişikliği doğru yakalıyor mu?</li>
+        </ul>
+        <p>Bunların hepsini binary'den bulabiliyorsan ilk gerçek tersine mühendislik akışını tamamladın.</p>
+
+        <div class="note"><b>Kısa kural:</b> Tahmin et → kanıt bul → isimlendir → doğrula → not al.<br>
+        Bir binary ilk açıldığında anlamsız adreslerden oluşan dev bir dosya gibidir. Çözdüğün her string, xref ve
+        fonksiyon bu yapının küçük bir parçasını anlamlı kılar. Amaç bütün assembly'yi ezberlemek değil;
+        <b>programın davranışını adım adım yeniden kurmaktır.</b></div>
+      </div>
+
       <div class="mod" id="sozluk">
         <div class="mod-tag">başvuru</div>
         <h2>Sözlük</h2>

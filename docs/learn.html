@@ -50,6 +50,7 @@
       <a href="#m4"><div class="pn">module 04</div><h4>First analysis</h4><p>Let's solve a function with tlk-hex, start to finish.</p></a>
       <a href="#m5"><div class="pn">module 05</div><h4>Recover the flow</h4><p>Reading if / loop / switch from the graph.</p></a>
       <a href="#m6"><div class="pn">module 06</div><h4>Practice</h4><p>Where and how to practise; legitimate exercise sources.</p></a>
+      <a href="#m7"><div class="pn">module 07</div><h4>A full EXE, end to end</h4><p>Combine everything in one real workflow: string → xref → decision → verify.</p></a>
     </div>
   </div>
 </section>
@@ -65,6 +66,7 @@
       <a href="#m4"><span class="mn">04</span>First analysis</a>
       <a href="#m5"><span class="mn">05</span>Recover the flow</a>
       <a href="#m6"><span class="mn">06</span>Practice</a>
+      <a href="#m7"><span class="mn">07</span>A full EXE</a>
       <a href="#glossary"><span class="mn">··</span>Glossary</a>
     </aside>
 
@@ -261,6 +263,264 @@
           <li><b>Name things</b> (<kbd>N</kbd>) and <b>leave notes</b> (<kbd>;</kbd>). As you understand, the file becomes readable.</li>
           <li><b>Save</b> with <kbd>Ctrl</kbd>+<kbd>W</kbd>; continue tomorrow where you left off.</li>
         </ul>
+      </div>
+
+      <div class="mod" id="m7">
+        <div class="mod-tag">module 07</div>
+        <h2>Solving a full EXE, end to end <span class="lvl i">intermediate</span></h2>
+        <p>So far we've seen the pieces separately: strings, imports, xrefs, assembly, graph and pseudocode. Now we'll
+        combine them into <b>one real analysis workflow</b>. Don't rush — the goal of this module isn't speed, it's
+        learning how to <i>ask a binary questions</i>.</p>
+        <p>We'll pretend we have no source code and answer these only from the file itself:</p>
+        <ul>
+          <li>What input does the program care about?</li>
+          <li>Which function makes the decision?</li>
+          <li>Which condition leads to which outcome?</li>
+          <li>How are the functions wired together?</li>
+          <li>And most importantly: how do we <b>prove</b> what we found is correct?</li>
+        </ul>
+        <div class="note">For this exercise we use a tiny EXE <b>we compile ourselves</b>. That keeps the analysis fully
+        safe, legal and <b>verifiable</b>: at the end we can check our findings against the real source.</div>
+
+        <h3>1 · Build the target program</h3>
+        <p>First we write the program we'll analyse. Create a file <code class="i">sample.c</code>:</p>
+        <div class="code"><div class="hdr">sample.c</div><pre><span class="cm">#include &lt;stdio.h&gt;</span>
+<span class="cm">#include &lt;string.h&gt;</span>
+
+<span class="kw">static int</span> classify(<span class="kw">const char</span> *mode)
+{
+    <span class="kw">if</span> (strcmp(mode, <span class="st">"debug"</span>) == 0)
+        <span class="kw">return</span> 2;
+    <span class="kw">if</span> (strcmp(mode, <span class="st">"safe"</span>) == 0)
+        <span class="kw">return</span> 1;
+    <span class="kw">return</span> 0;
+}
+
+<span class="kw">int</span> main(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    <span class="kw">const char</span> *mode = argc &gt; 1 ? argv[1] : <span class="st">"safe"</span>;
+    <span class="kw">int</span> result = classify(mode);
+    printf(<span class="st">"mode=%s result=%d\n"</span>, mode, result);
+    <span class="kw">return</span> result;
+}</pre></div>
+        <p>For now, <b>forget what it does</b>. We only use the source to create our target; once the EXE exists we look
+        at it purely as a binary. Compile it (whichever you have):</p>
+        <div class="code"><div class="hdr">MSVC (Developer Command Prompt)</div><pre>cl /O2 /Fe:sample.exe sample.c</pre></div>
+        <div class="code"><div class="hdr">MinGW-w64</div><pre>gcc -O2 -o sample.exe sample.c</pre></div>
+        <p>We now have <code class="i">sample.exe</code>. From here on, <b>close the source</b>.</p>
+
+        <h3>2 · Open it and map it first</h3>
+        <p>Drag <code class="i">sample.exe</code> onto tlk-hex. Auto-analysis starts and recovers sections, functions,
+        calls, strings, xrefs and imports.</p>
+        <p>When it finishes, <b>don't dive into assembly yet.</b> Get a feel for the file first. In reverse engineering
+        the first goal isn't detail, it's <b>context</b> — reading instructions one by one without knowing where you
+        are just wears you out.</p>
+
+        <h3>3 · Look at strings first</h3>
+        <p>Open Strings with <kbd>Shift</kbd>+<kbd>F12</kbd>. You'll look for text like:</p>
+        <div class="code"><div class="hdr">Strings</div><pre><span class="st">debug</span>
+<span class="st">safe</span>
+<span class="st">mode=%s result=%d</span></pre></div>
+        <p>These three lines already tell us a lot before reading a single instruction. <code class="i">debug</code> and
+        <code class="i">safe</code> are probably values <b>compared</b> against user input; <code class="i">mode=%s
+        result=%d</code> suggests the program <b>prints a result</b> at the end.</p>
+        <div class="note warn">But these are still only <b>hypotheses</b>. The golden rule: <i>don't treat something as
+        true just because it looks reasonable; verify it with xrefs and control flow.</i></div>
+
+        <h3>4 · Go from string to code (xref)</h3>
+        <p>Select the <code class="i">debug</code> string and press <kbd>X</kbd>. This shows where it's used
+        (cross-references). Jump to a code reference. Do the same for <code class="i">safe</code>.</p>
+        <p>You'll see both strings' references land in the <b>same function</b> or very close code. A strong clue:</p>
+        <div class="note">This function most likely compares the incoming value against <code class="i">"debug"</code> and
+        <code class="i">"safe"</code>.</div>
+
+        <h3>5 · Check imports, combine the evidence</h3>
+        <p>Now look at the functions the program borrows from outside. Names vary a little by compiler, but you'll see:</p>
+        <table class="tbl">
+          <tr><th>Import</th><th>What it does</th></tr>
+          <tr><td>strcmp</td><td>Compares two C strings (returns 0 if equal)</td></tr>
+          <tr><td>printf</td><td>Prints formatted text</td></tr>
+        </table>
+        <p>Now three independent pieces of evidence have piled up: <code class="i">"debug"</code>,
+        <code class="i">"safe"</code> and <code class="i">strcmp</code>. Together they point to a strong likelihood:
+        <i>the program compares a string against "debug" and "safe".</i> We still won't be sure until we see it in
+        assembly.</p>
+
+        <h3>6 · Read the deciding function</h3>
+        <p>Go to the start of the function you reached from the <code class="i">debug</code> xref. Its auto name might be
+        <code class="i">sub_140001000</code> — we don't know its real name yet. Inside you'll see a pattern like this
+        (exact instructions vary by compiler; what matters is reading the <b>pattern</b>):</p>
+        <div class="code"><div class="hdr">comparison pattern</div><pre><span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aDebug</span>        <span class="cm">; 2nd arg: "debug"</span>
+<span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>          <span class="cm">; 1st arg: the input</span>
+<span class="m">call</span>    <span class="nm">strcmp</span>            <span class="cm">; strcmp(input, "debug")</span>
+<span class="m">test</span>    <span class="r">eax</span>, <span class="r">eax</span>          <span class="cm">; is the result 0? (equal?)</span>
+<span class="m">jz</span>      <span class="nm">loc_debug</span>         <span class="cm">; if equal, jump to the debug block</span></pre></div>
+        <p>The first two lines prepare <code class="i">strcmp</code>'s arguments. <code class="i">strcmp</code> returns
+        <b>0</b> when the strings are equal; <code class="i">test eax, eax</code> checks whether the result is zero and
+        <code class="i">jz</code> (jump if zero) goes to that block. So the logic is clear:</p>
+        <div class="code"><div class="hdr">C equivalent</div><pre><span class="kw">if</span> (strcmp(input, <span class="st">"debug"</span>) == 0)</pre></div>
+
+        <h3>7 · Give the function a meaningful name</h3>
+        <p>We roughly know what it does now. On the function, press <kbd>N</kbd> and rename
+        <code class="i">sub_140001000</code> to <code class="i">classify_mode</code>.</p>
+        <p>Naming isn't a luxury, it's <b>the heart of the method</b>. At first you see dozens of
+        <code class="i">sub_140001000</code>; as you turn them into <code class="i">classify_mode</code>,
+        <code class="i">print_result</code>, <code class="i">load_config</code> and so on, the file gets more readable
+        every pass.</p>
+
+        <h3>8 · Switch to the graph, see the flow</h3>
+        <p>Inside the function, press <kbd>Space</kbd>; instead of text you get the <b>control-flow graph</b>. For this
+        example we roughly expect this decision tree:</p>
+        <div class="code"><div class="hdr">expected decision structure</div><pre>                input
+                  │
+                  ▼
+          input == "debug"?
+           ┌──────┴──────┐
+          yes           no
+           │             │
+           ▼             ▼
+       return 2    input == "safe"?
+                    ┌─────┴─────┐
+                  yes          no
+                    │           │
+                    ▼           ▼
+                return 1    return 0</pre></div>
+        <p>What looks tangled in assembly reads at a glance in the graph. Follow the <b>no (false)</b> path of the first
+        comparison and after a while you'll find a <b>second comparison</b> using the <code class="i">"safe"</code>
+        string — same logic:</p>
+        <div class="code"><div class="hdr">second comparison</div><pre><span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aSafe</span>
+<span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>
+<span class="m">call</span>    <span class="nm">strcmp</span>
+<span class="m">test</span>    <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">jz</span>      <span class="nm">loc_safe</span>          <span class="cm">; if (strcmp(input, "safe") == 0)</span></pre></div>
+
+        <h3>9 · Follow the return values</h3>
+        <p>Now check which value each path returns. On x64 Windows the integer return value comes back in
+        <code class="i">eax</code>:</p>
+        <div class="code"><div class="hdr">return values</div><pre><span class="m">mov</span>     <span class="r">eax</span>, <span class="n">2</span>
+<span class="m">ret</span>                     <span class="cm">; return 2;  (debug path)</span>
+
+<span class="m">mov</span>     <span class="r">eax</span>, <span class="n">1</span>
+<span class="m">ret</span>                     <span class="cm">; return 1;  (safe path)</span>
+
+<span class="m">xor</span>     <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">ret</span>                     <span class="cm">; return 0;  (xor = zero it; default path)</span></pre></div>
+        <p><code class="i">xor eax, eax</code> zeroes the register — i.e. <code class="i">return 0;</code>. Recognising this
+        little pattern pays off; you'll see it everywhere.</p>
+
+        <h3>10 · Reconstruct the logic and compare with F5</h3>
+        <p>Combining the evidence, the binary is telling us:</p>
+        <div class="code"><div class="hdr">the logic we recovered</div><pre><span class="kw">int</span> classify_mode(<span class="kw">const char</span> *input)
+{
+    <span class="kw">if</span> (strcmp(input, <span class="st">"debug"</span>) == 0)
+        <span class="kw">return</span> 2;
+    <span class="kw">if</span> (strcmp(input, <span class="st">"safe"</span>) == 0)
+        <span class="kw">return</span> 1;
+    <span class="kw">return</span> 0;
+}</pre></div>
+        <p>We recovered the function's behaviour without the source — and that's exactly the point of reverse
+        engineering: <b>not getting the source back verbatim, but understanding the behaviour well enough.</b></p>
+        <p>Now press <kbd>F5</kbd>; tlk-hex turns the same function into C-like pseudocode and shows something very close
+        to what you worked out by hand. It's fast, but a warning:</p>
+        <div class="note warn">Decompiler output is <b>not the real source code.</b> Compiler optimizations, lost type
+        information and register reuse can make it wrong or incomplete. Always verify important conclusions in assembly
+        and the graph. Ideal order: <i>get the idea from pseudocode → check the flow in the graph → prove it in
+        assembly.</i></div>
+
+        <h3>11 · Who calls it + the output chain</h3>
+        <p>On <code class="i">classify_mode</code>, press <kbd>X</kbd> again — this time you see <b>who calls</b> the
+        function. You'll probably land in <code class="i">main</code> or near it:</p>
+        <div class="code"><div class="hdr">call site</div><pre><span class="m">mov</span>     <span class="r">rcx</span>, <span class="r">rbx</span>          <span class="cm">; input</span>
+<span class="m">call</span>    <span class="nm">classify_mode</span>
+<span class="m">mov</span>     <span class="r">esi</span>, <span class="r">eax</span>          <span class="cm">; save the return value (used later)</span></pre></div>
+        <p>Then back to Strings, follow <code class="i">mode=%s result=%d</code> with <kbd>X</kbd>; nearby you'll see a
+        <code class="i">printf</code> call. So we've recovered the whole chain:</p>
+        <div class="code"><div class="hdr">program flow</div><pre>command-line input  →  classify_mode  →  0 / 1 / 2  →  printf  →  exit</pre></div>
+
+        <h3>12 · Name, comment, save</h3>
+        <p>Make your findings permanent:</p>
+        <ul>
+          <li><kbd>N</kbd> to name: <code class="i">sub_140001000 → classify_mode</code>,
+              <code class="i">aDebug → mode_debug</code>, <code class="i">aSafe → mode_safe</code>…</li>
+          <li><kbd>;</kbd> to comment key lines: <i>"compares the incoming mode with 'debug'"</i> or
+              <i>"default path returns 0"</i>.</li>
+          <li><kbd>Ctrl</kbd>+<kbd>W</kbd> to save. tlk-hex keeps names/comments/work separately; the <b>original EXE is
+              untouched</b> and reopening resumes where you left off.</li>
+        </ul>
+        <p>Reverse engineering isn't only reading a binary; it's <b>recording what you find in an orderly way</b>. A
+        well-named database looks completely different — far more readable — a few hours in.</p>
+
+        <h3>13 · Write the result in a few sentences</h3>
+        <p>A good session ends with a short conclusion. For this example:</p>
+        <div class="code"><div class="hdr">analysis result</div><pre>sample.exe takes a "mode" value from the command line.
+  mode == "debug"  →  result = 2
+  mode == "safe"   →  result = 1
+  any other value  →  result = 0
+The result is printed with printf as "mode=%s result=%d".</pre></div>
+        <p>We recovered the program's core behaviour without ever looking at the source. That was the whole point.</p>
+
+        <h3>The workflow you'll reuse on every binary</h3>
+        <p>This loop works on almost any file — no need to memorize it, it becomes second nature after a few runs:</p>
+        <div class="code"><div class="hdr">methodology</div><pre> 1. Open the file, wait for auto-analysis
+ 2. Look at sections / imports / strings (context)
+ 3. Pick an interesting string or import
+ 4. Go to code with xref (X)
+ 5. Study the function's graph (Space)
+ 6. Follow the call targets
+ 7. Extract the conditions and return values
+ 8. Quick check with F5 pseudocode
+ 9. Verify in assembly
+10. Name the functions (N)
+11. Add comments (;)
+12. Save (Ctrl+W)
+13. Write the result in a few sentences</pre></div>
+
+        <h3>What to look at first in an unknown EXE</h3>
+        <p><b>Strings</b> are the strongest clues. If you see these, stop and follow
+        <code class="i">string → X → function</code>:</p>
+        <div class="code"><div class="hdr">notable strings</div><pre>error   failed   password   token   config
+login   connect  http       registry file   debug</pre></div>
+        <p><b>Imports</b> reveal which capabilities the program uses:</p>
+        <table class="tbl">
+          <tr><th>Import group</th><th>What it points to</th></tr>
+          <tr><td>CreateFileW · ReadFile · WriteFile</td><td>File operations</td></tr>
+          <tr><td>RegOpenKeyExW · RegSetValueExW</td><td>Registry usage</td></tr>
+          <tr><td>connect · send · recv</td><td>Networking</td></tr>
+          <tr><td>CryptEncrypt · CryptDecrypt</td><td>Encryption</td></tr>
+        </table>
+        <div class="note">A single import proves nothing — weigh the evidence <b>together</b>. If you don't understand a
+        function, ask two questions: <i>who does it call?</i> and <i>who calls it?</i> Xrefs answer both.</div>
+
+        <h3>The limit of static analysis</h3>
+        <p>tlk-hex currently does mostly <b>static</b> analysis — it inspects the program without running it. So assembly
+        analysis, function discovery, xrefs, string/import analysis, the graph, pseudocode, PDB symbols, hex inspection
+        and patch preparation all work comfortably. But some things can't always be seen with pure static analysis:</p>
+        <div class="code"><div class="hdr">cases that need dynamic analysis</div><pre>values computed at runtime
+encrypted code decrypted in memory
+self-modifying code
+runtime unpacking (packers that unpack while running)</pre></div>
+        <p>In those cases <b>dynamic</b> tools like a debugger come in. Still, most of the work starts static; you use
+        static analysis to find what to look for, then switch to dynamic if needed.</p>
+
+        <h3>Final task — try it yourself</h3>
+        <p>Recompile the sample with a small change (try to analyse it <b>without</b> looking at the source again):</p>
+        <div class="code"><div class="hdr">sample.c — add a line</div><pre><span class="kw">if</span> (strcmp(mode, <span class="st">"admin"</span>) == 0)
+    <span class="kw">return</span> 3;</pre></div>
+        <p>Open the new EXE in tlk-hex and find, <b>from the binary only</b>:</p>
+        <ul>
+          <li>Which is the new string?</li>
+          <li>Which function uses it?</li>
+          <li>After which condition does it run?</li>
+          <li>Which value is returned?</li>
+          <li>Where is the new branch in the graph?</li>
+          <li>Does the pseudocode catch the change correctly?</li>
+        </ul>
+        <p>If you can find all of these from the binary, you've completed your first real reverse-engineering workflow.</p>
+
+        <div class="note"><b>The short rule:</b> guess → find evidence → name → verify → take notes.<br>
+        When a binary first opens it looks like one huge file of meaningless addresses. Every string, xref and function
+        you solve turns a small part of that unknown into something meaningful. The goal isn't to memorize all the
+        assembly; it's to <b>rebuild the program's behaviour step by step.</b></div>
       </div>
 
       <div class="mod" id="glossary">

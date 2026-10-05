@@ -71,10 +71,13 @@ Output: `bin\Release\net10.0-windows\tlk-hex.exe` — or just run `run.bat`.
 Then drag-and-drop a file; tlk-hex handles the rest. Press `F1` in-app for a quick guide, or see the
 **[tutorials](https://talkdedsec.github.io/tlk-hex/learn.html)**.
 
-Prebuilt, self-contained Windows binaries (no .NET install needed) are on the
-[Releases](https://github.com/Talkdedsec/tlk-hex/releases) page.
+Prebuilt Windows binaries are on the [Releases](https://github.com/Talkdedsec/tlk-hex/releases) page:
 
-> The downloaded `.exe` is not code-signed, so Windows SmartScreen may show a warning the first time.
+- **`…-win-x64-portable.exe`** — a single, self-contained executable. No .NET install needed; just download and run.
+- **`…-win-x64.zip`** — the same portable exe, zipped (friendlier download).
+- **`…-win-x64-fx.zip`** — framework-dependent build (much smaller, needs the .NET 10 Desktop Runtime).
+
+> The downloaded `.exe` is not code-signed, so Windows SmartScreen may warn the first time.
 > Choose **More info → Run anyway**, or build from source yourself.
 
 ## ⌨️ Common shortcuts
