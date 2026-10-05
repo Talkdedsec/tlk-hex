@@ -1,0 +1,43 @@
+name: Bug report
+description: Report something that doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Please do not attach copyrighted or malicious binaries.
+        A public file (e.g. a Windows system DLL) or a minimal sample you own is ideal.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Press ...
+        3. See ...
+    validations:
+      required: true
+  - type: input
+    id: file
+    attributes:
+      label: Target file type / architecture
+      placeholder: e.g. PE x64 DLL, ELF x86, raw binary
+  - type: input
+    id: version
+    attributes:
+      label: tlk-hex version / commit
+      placeholder: e.g. v0.1.0 or commit hash
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, Output panel text, crash.log, etc.

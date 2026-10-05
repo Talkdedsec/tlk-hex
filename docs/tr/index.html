@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tlk-hex — interaktif disassembler</title>
+<meta name="description" content="tlk-hex: EXE, DLL, SYS, ELF ve ham binary için interaktif disassembler. Otomatik analiz, akış grafiği, hex, pseudocode, arama ve sembol desteği.">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../img/icon-256.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tlk-hex">
+<meta property="og:title" content="tlk-hex — interaktif disassembler">
+<meta property="og:description" content="tlk-hex: EXE, DLL, SYS, ELF ve ham binary için interaktif disassembler. Otomatik analiz, akış grafiği, hex, pseudocode, arama ve sembol desteği.">
+<meta property="og:image" content="https://talkdedsec.github.io/tlk-hex/img/icon-256.png">
+<meta property="og:url" content="https://talkdedsec.github.io/tlk-hex/tr/index.html">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="tlk-hex — interaktif disassembler">
+<meta name="twitter:description" content="tlk-hex: EXE, DLL, SYS, ELF ve ham binary için interaktif disassembler. Otomatik analiz, akış grafiği, hex, pseudocode, arama ve sembol desteği.">
+<meta name="twitter:image" content="https://talkdedsec.github.io/tlk-hex/img/icon-256.png">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="../img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html" class="on">genel</a>
+      <a href="kullanim.html">kullanım</a>
+      <a href="egitim.html">eğitim</a>
+      <a href="kisayollar.html">kısayollar</a>
+      <a href="index.html#sss">sss</a>
+    <span class="lang"><a href="index.html" class="on">TR</a><a href="../index.html">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">interaktif disassembler · statik analiz</span>
+      <h1>Derlenmiş<br>koda geri <em>dön.</em></h1>
+      <p class="lead">
+        Bir <code class="i">.exe</code> veya <code class="i">.dll</code> sürükle; tlk-hex onu okunur
+        assembly'ye çevirir, fonksiyonları ve çağrıları çıkarır, akışı çizer. Olanı anlamak için.
+      </p>
+      <div class="btns">
+        <a class="btn solid" href="kullanim.html">başla</a>
+        <a class="btn line" href="kisayollar.html">kısayollar</a>
+        <a class="btn bare" href="#ozellikler">ne yapar? ↓</a>
+      </div>
+      <div class="meta-row">
+        <span><b>PE</b> · ELF · BIN</span>
+        <span><b>x86</b> / x64</span>
+        <span>analiz <b>&lt; 1 sn</b></span>
+        <span>çalıştırmaz — <b>güvenli</b></span>
+      </div>
+    </div>
+
+    <div class="win" aria-hidden="true">
+      <div class="win-bar">
+        <div class="tab on">IDA View-A</div>
+        <div class="tab">Hex View-1</div>
+        <div class="tab">Pseudocode</div>
+        <div class="sp"></div>
+        <div class="x">—  □  ×</div>
+      </div>
+      <div class="listing"><div class="ln sep"><span class="cm">; =============== S U B R O U T I N E =======================</span></div><div class="ln"> </div><div class="ln"><span class="a">.text:140001008</span> <span class="nm">ParseConfigFile</span> <span class="m">proc near</span></div><div class="ln"><span class="a">.text:140001008</span>                 <span class="m">mov</span>     <span class="r">r11</span>, <span class="r">rsp</span></div><div class="ln"><span class="a">.text:14000100B</span>                 <span class="m">sub</span>     <span class="r">rsp</span>, <span class="n">88h</span></div><div class="ln"><span class="a">.text:140001012</span>                 <span class="m">mov</span>     <span class="r">rax</span>, <span class="r">cs</span>:<span class="nm">__security_cookie</span></div><div class="ln"><span class="a">.text:140001019</span>                 <span class="m">xor</span>     <span class="r">rax</span>, <span class="r">rsp</span></div><div class="ln"><span class="a">.text:14000101C</span>                 <span class="m">mov</span>     [<span class="r">rsp</span>+<span class="n">88h</span>+<span class="kw">var_18</span>], <span class="r">rax</span></div><div class="ln hl"><span class="a">.text:140001053</span>                 <span class="m">lea</span>     <span class="r">rcx</span>, <span class="nm">aConfigLoaded</span>  <span class="cm">; "config loaded: %s"</span></div><div class="ln"><span class="a">.text:14000105A</span>                 <span class="m">mov</span>     <span class="r">edx</span>, <span class="r">esi</span></div><div class="ln"><span class="a">.text:140001073</span>                 <span class="m">call</span>    <span class="nm">LogMessage</span></div><div class="ln"><span class="a">.text:140001078</span>                 <span class="m">mov</span>     <span class="r">rcx</span>, [<span class="r">rsp</span>+<span class="n">88h</span>+<span class="kw">var_18</span>]</div><div class="ln"><span class="a">.text:14000107D</span>                 <span class="m">xor</span>     <span class="r">rcx</span>, <span class="r">rsp</span></div><div class="ln"><span class="a">.text:140001080</span>                 <span class="m">call</span>    <span class="im">cs:__security_check_cookie</span></div><div class="ln"><span class="a">.text:140001085</span>                 <span class="m">add</span>     <span class="r">rsp</span>, <span class="n">88h</span></div><div class="ln"><span class="a">.text:14000108C</span>                 <span class="m">retn</span></div><div class="ln"><span class="a">.text:14000108C</span> <span class="nm">ParseConfigFile</span> <span class="m">endp</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="ozellikler">
+  <div class="wrap">
+    <div class="sec-label">özellikler</div>
+    <div class="feat">
+      <div class="row"><div class="tag">[00]</div><div><h3>Otomatik analiz</h3><p>Kendi PE / ELF / binary yükleyicisi ve disassembler motoru. Fonksiyonlar, çapraz referanslar, switch tabloları, string'ler ve veri tipleri kendiliğinden çıkar.</p></div></div>
+      <div class="row"><div class="tag">[01]</div><div><h3>Akış grafiği</h3><p><kbd>Space</kbd> ile fonksiyonun blok grafiği. Yeşil/kırmızı/mavi dallar, zoom, kuş bakışı harita.</p></div></div>
+      <div class="row"><div class="tag">[02]</div><div><h3>Pseudocode</h3><p><kbd>F5</kbd> ile assembly'nin C benzeri okunur hali. AI bağlıysa daha temiz bir çeviri de alınır.</p></div></div>
+      <div class="row"><div class="tag">[03]</div><div><h3>Güçlü arama</h3><p>İsim, metin, kod satırı, yorum, bayt dizisi (<code>48 8B ?? 05</code>) ve sabit değer — yazdıkça sonuç.</p></div></div>
+      <div class="row"><div class="tag">[04]</div><div><h3>Sembol desteği</h3><p>Microsoft sembol sunucusundan PDB indirir; <code>sub_140001A54</code> gibi isimler gerçek fonksiyon adlarına döner.</p></div></div>
+      <div class="row"><div class="tag">[05]</div><div><h3>Hex &amp; yama</h3><p>Ham baytları gör, <kbd>F2</kbd> ile düzenle, yamayı dosyaya uygula ya da DIF olarak dışa aktar. Orijinal bozulmaz.</p></div></div>
+      <div class="row"><div class="tag">[06]</div><div><h3>İsim &amp; not</h3><p>Yeniden adlandır, yorum ekle, fonksiyonları klasörle. Çalışman kaydedilir, dosyayı tekrar açınca geri gelir.</p></div></div>
+      <div class="row"><div class="tag">[07]</div><div><h3>AI yardımı</h3><p>Kendi API anahtarınla: "bu fonksiyon ne yapıyor?" diye sor, güvenlik değerlendirmesi al, pseudocode'u iyileştir.</p></div></div>
+      <div class="row"><div class="tag">[08]</div><div><h3>Güvenlik bulguları</h3><p>Şüpheli API kullanımları, yüksek entropi, imzasız dosya gibi göstergeleri tek listede toplar.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="show">
+      <div class="txt">
+        <div class="eyebrow">oku, anla</div>
+        <h2>IDA tarzı metin görünümü</h2>
+        <p>Adresler, çapraz referanslar, yığın değişkenleri, import çağrıları ve segmentler — alışık olduğun düzen.</p>
+        <p>Bir isme çift tıkla, oraya gider; <kbd>Esc</kbd> ile geri dönersin. Fareyi bir ismin üzerinde beklet, önizlemesi çıkar.</p>
+        <div class="btns"><a class="btn line" href="kullanim.html">adım adım →</a></div>
+      </div>
+      <div><div class="shot"><img src="../img/text.png" alt="Metin (disassembly) görünümü"></div>
+      <div class="shot-cap">IDA View-A · fonksiyonlar, xref'ler, yığın değişkenleri</div></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="show rev">
+      <div><div class="shot"><img src="../img/search.png" alt="Arama paneli"></div>
+      <div class="shot-cap">Ctrl+Shift+F · kapsam seçilebilir · yazdıkça sonuç</div></div>
+      <div class="txt">
+        <div class="eyebrow">bul</div>
+        <h2>Ne arıyorsan, anında</h2>
+        <p>Kapsamı seç — isimler, metinler, kod, yorumlar, bayt dizisi, sabit değer — yazmaya başla, sonuçlar dolsun.</p>
+        <p>Sonuca tıkla = önizle; çift tık ya da <kbd>Enter</kbd> = oraya git. Büyük dosyalarda bile saniyeler içinde.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sss">
+  <div class="wrap">
+    <div class="sec-label">sık sorulanlar</div>
+
+    <details class="faq">
+      <summary>Bununla lisanslı / kilitli bir programı "açık" hale getirebilir miyim?</summary>
+      <p><b>Hayır.</b> tlk-hex bir analiz ve tersine mühendislik aracıdır: kendi kodunu, zararlı yazılımı, CTF dosyalarını
+      ve izinli güvenlik testlerini anlamak için. Satın almadığın bir yazılımın kopya korumasını kaldırmak (crack) ne
+      aracın amacıdır ne de desteklenir. Yetkili olduğun dosyalarda, eğitim ve araştırma amacıyla kullan.</p>
+    </details>
+    <details class="faq">
+      <summary>Hangi dosyaları açar?</summary>
+      <p>Windows PE (EXE, DLL, SYS, OCX, CPL, SCR, DRV, EFI), Linux ELF (so dahil) ve ham binary. İşlemci olarak x86 ve
+      x64 tam desteklenir; diğer mimariler veri olarak yüklenir.</p>
+    </details>
+    <details class="faq">
+      <summary>Programı çalıştırıyor mu? Güvenli mi?</summary>
+      <p>Hayır, çalıştırmaz. tlk-hex yalnızca <b>statik</b> analiz yapar — dosyayı diskten okur, kodunu çözümler.
+      İncelediğin dosya hiç çalıştırılmadığı için zararlı örnekleri incelemek de uygundur.</p>
+    </details>
+    <details class="faq">
+      <summary>Semboller indirilirken dışarıya ne gidiyor?</summary>
+      <p>Yalnızca PDB dosyasının adı ve kimliği (GUID) Microsoft sembol sunucusuna gider — dosyanın kendisi değil.
+      İndirilen PDB önbelleğe alınır; aynı dosya sonraki açılışta internetsiz isimlenir. Seçenekler'den kapatılabilir.</p>
+    </details>
+    <details class="faq">
+      <summary>AI için ne gerekli?</summary>
+      <p>Kendi API anahtarın. <b>Seçenekler → AI desteği</b>. Anahtar girilmeden AI özellikleri pasiftir; analiz ve tüm
+      diğer özellikler anahtarsız da tam çalışır.</p>
+    </details>
+    <details class="faq">
+      <summary>Yaptığım isimler ve yorumlar kayboluyor mu?</summary>
+      <p>Hayır. <kbd>Ctrl</kbd>+<kbd>W</kbd> ile çalışman ayrı bir veritabanına yazılır — orijinal dosyaya dokunulmaz.
+      Aynı dosyayı tekrar açtığında isimler, yorumlar, tanımlar ve yamalar geri gelir.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interaktif disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">yalnızca yetkili analiz · eğitim · araştırma</div>
+  </div>
+</footer>
+
+</body>
+</html>
