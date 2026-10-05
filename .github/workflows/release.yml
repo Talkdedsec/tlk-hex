@@ -17,7 +17,8 @@ jobs:
         run: >
           dotnet publish tlk-hex.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:EnableCompressionInSingleFile=true -o publish
+          -p:EnableCompressionInSingleFile=true -p:DebugType=none -p:DebugSymbols=false
+          -o publish
       - name: Paketle
         run: Compress-Archive -Path publish/* -DestinationPath tlk-hex-${{ github.ref_name }}-win-x64.zip
       - name: Sürüm oluştur
