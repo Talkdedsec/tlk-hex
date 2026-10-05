@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/tests/">
-    <Project Path="tests/tlk-hex.Tests.csproj" />
-  </Folder>
-  <Project Path="tlk-hex.csproj" />
-</Solution>

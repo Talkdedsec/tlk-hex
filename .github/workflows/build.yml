@@ -14,9 +14,7 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
-      - name: Restore
-        run: dotnet restore
       - name: Build
-        run: dotnet build -c Release --no-restore --nologo
+        run: dotnet build tlk-hex.csproj -c Release --nologo
       - name: Test
-        run: dotnet test -c Release --no-build --nologo
+        run: dotnet test tests/tlk-hex.Tests.csproj -c Release --nologo
