@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn — reverse engineering with tlk-hex</title>
+<meta name="description" content="Reverse engineering from scratch: how a disassembler works, PE/ELF file structure, reading x86/x64 assembly, your first analysis, recovering control flow, and a glossary — taught through tlk-hex.">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../img/icon-256.png">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="../img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html">overview</a>
+      <a href="usage.html">usage</a>
+      <a href="learn.html" class="on">learn</a>
+      <a href="shortcuts.html">shortcuts</a>
+      <a href="index.html#faq">faq</a>
+      <span class="lang"><a href="../egitim.html">TR</a><a href="learn.html" class="on">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding-bottom:30px">
+  <div class="wrap">
+    <span class="eyebrow">reverse engineering from scratch</span>
+    <h1 style="font-size:clamp(32px,5.5vw,52px)">Learn to <em>read</em><br>machine code.</h1>
+    <p class="lead">
+      Even if you've never seen assembly, you can start here. From concepts to solving a real function line by
+      line — trying every step inside tlk-hex.
+    </p>
+    <div class="path">
+      <a href="#m1"><div class="pn">module 01</div><h4>Fundamentals</h4><p>Disassembler, assembly, registers, memory — what are we dealing with?</p></a>
+      <a href="#m2"><div class="pn">module 02</div><h4>File structure</h4><p>PE/ELF headers, sections, imports, entry point.</p></a>
+      <a href="#m3"><div class="pn">module 03</div><h4>Reading assembly</h4><p>Registers, common instructions, calling convention, the stack.</p></a>
+      <a href="#m4"><div class="pn">module 04</div><h4>First analysis</h4><p>Let's solve a function with tlk-hex, start to finish.</p></a>
+      <a href="#m5"><div class="pn">module 05</div><h4>Recover the flow</h4><p>Reading if / loop / switch from the graph.</p></a>
+      <a href="#m6"><div class="pn">module 06</div><h4>Practice</h4><p>Where and how to practise; legitimate exercise sources.</p></a>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:30px">
+  <div class="wrap edu-grid">
+
+    <aside class="toc">
+      <div class="toc-h">Contents</div>
+      <a href="#m1"><span class="mn">01</span>Fundamentals</a>
+      <a href="#m2"><span class="mn">02</span>File structure</a>
+      <a href="#m3"><span class="mn">03</span>Reading assembly</a>
+      <a href="#m4"><span class="mn">04</span>First analysis</a>
+      <a href="#m5"><span class="mn">05</span>Recover the flow</a>
+      <a href="#m6"><span class="mn">06</span>Practice</a>
+      <a href="#glossary"><span class="mn">··</span>Glossary</a>
+    </aside>
+
+    <div>
+
+      <div class="mod" id="m1">
+        <div class="mod-tag">module 01</div>
+        <h2>Fundamentals <span class="lvl b">beginner</span></h2>
+        <p>You write a program, the compiler turns it into <b>machine code</b>: the bytes the processor runs directly.
+        The source code is usually not available — all we have is those bytes. <b>Reverse engineering</b> is working
+        backwards from those bytes to understand what the program does.</p>
+
+        <h3>What does a disassembler do?</h3>
+        <p>The processor reads bytes and runs them as <b>instructions</b>. For example the bytes
+        <code class="i">48 83 EC 28</code> actually mean "reserve 0x28 bytes on the stack". A <b>disassembler</b> turns
+        those bytes into human-readable <b>assembly</b>:</p>
+        <div class="code"><div class="hdr">bytes → assembly</div><pre><span class="a">48 83 EC 28</span>      <span class="m">sub</span>     <span class="r">rsp</span>, <span class="n">28h</span>    <span class="cm">; reserve 40 bytes on the stack</span></pre></div>
+        <p>tlk-hex decodes the whole file this way, then ties the functions, calls and data together.</p>
+
+        <h3>A few basic concepts</h3>
+        <ul>
+          <li><b>Register:</b> tiny, very fast variables inside the processor. On x64 they're named <code class="i">rax</code>, <code class="i">rbx</code>, <code class="i">rcx</code>…</li>
+          <li><b>Memory address:</b> every byte has a number, written in hexadecimal like <code class="i">0x140001008</code>.</li>
+          <li><b>Instruction:</b> one step for the processor — <code class="i">mov</code>, <code class="i">add</code>, <code class="i">call</code>…</li>
+          <li><b>Function:</b> a sequence of instructions that work together; called from somewhere with <code class="i">call</code>, returns with <code class="i">ret</code>.</li>
+        </ul>
+        <div class="note"><b>Why hexadecimal?</b> Bytes range 0–255 and the range <code class="i">00</code>–<code class="i">FF</code>
+        fits exactly into two hex digits. That's why addresses and values are always written in hex. In tlk-hex,
+        <kbd>H</kbd> converts a number to decimal.</div>
+      </div>
+
+      <div class="mod" id="m2">
+        <div class="mod-tag">module 02</div>
+        <h2>File structure <span class="lvl b">beginner</span></h2>
+        <p>An <code class="i">.exe</code> isn't just code. For Windows to load it into memory correctly it has a layout:
+        the <b>PE (Portable Executable)</b> format. On Linux the equivalent is <b>ELF</b>.</p>
+
+        <h3>Sections</h3>
+        <p>The file is split into sections by purpose. In tlk-hex, <kbd>Shift</kbd>+<kbd>F7</kbd> shows them all:</p>
+        <table class="tbl">
+          <tr><th>Section</th><th>What's inside</th></tr>
+          <tr><td>.text</td><td>Executable code. Functions live here.</td></tr>
+          <tr><td>.rdata</td><td>Read-only data: strings, import table, constants.</td></tr>
+          <tr><td>.data</td><td>Writable global variables.</td></tr>
+          <tr><td>.rsrc</td><td>Resources: icons, version info, dialogs.</td></tr>
+          <tr><td>.pdata</td><td>x64 exception/unwind info — helps find function boundaries.</td></tr>
+        </table>
+
+        <h3>Key points</h3>
+        <ul>
+          <li><b>Entry point:</b> the first instruction run when the program starts. <kbd>Ctrl</kbd>+<kbd>E</kbd> in tlk-hex.</li>
+          <li><b>Imports:</b> functions the program borrows from other DLLs (<code class="i">CreateFileW</code>, <code class="i">send</code>…). The strongest clue to what it does.</li>
+          <li><b>Exports:</b> functions a DLL exposes to the outside.</li>
+          <li><b>Image base:</b> the start address where the file loads in memory (<code class="i">0x140000000</code> for most x64 EXEs).</li>
+        </ul>
+        <div class="note"><b>RVA vs offset:</b> the position in the file (<i>file offset</i>) differs from the address in
+        memory (<i>RVA + image base</i>). tlk-hex shows both and does the conversion for you — you see both in the status bar.</div>
+      </div>
+
+      <div class="mod" id="m3">
+        <div class="mod-tag">module 03</div>
+        <h2>Reading assembly <span class="lvl i">intermediate</span></h2>
+        <p>It looks scary but a few dozen instructions cover 90% of the work. First, the registers:</p>
+
+        <h3>Registers</h3>
+        <table class="tbl">
+          <tr><th>64-bit</th><th>32-bit</th><th>Typical use</th></tr>
+          <tr><td>rax</td><td>eax</td><td>Return value; general math</td></tr>
+          <tr><td>rcx rdx r8 r9</td><td>ecx edx</td><td>First 4 arguments to a function (x64)</td></tr>
+          <tr><td>rbx rsi rdi</td><td>ebx esi edi</td><td>Preserved general variables</td></tr>
+          <tr><td>rsp</td><td>esp</td><td>Stack pointer</td></tr>
+          <tr><td>rbp</td><td>ebp</td><td>Stack frame base</td></tr>
+          <tr><td>rip</td><td>eip</td><td>Address of the next instruction</td></tr>
+        </table>
+        <p>Smaller parts of a register are also used: <code class="i">rax</code> → <code class="i">eax</code> (32) →
+        <code class="i">ax</code> (16) → <code class="i">al</code> (8 bit).</p>
+
+        <h3>The most common instructions</h3>
+        <table class="tbl">
+          <tr><th>Instruction</th><th>Meaning</th></tr>
+          <tr><td>mov a, b</td><td><code>a = b</code> — copy a value</td></tr>
+          <tr><td>lea a, [b]</td><td><code>a = address of b</code> — compute an address (doesn't always read memory)</td></tr>
+          <tr><td>add / sub</td><td>Add / subtract</td></tr>
+          <tr><td>xor a, a</td><td>Zero a register (XOR with itself = 0)</td></tr>
+          <tr><td>cmp a, b</td><td>Compare (<code>a - b</code>) and set flags</td></tr>
+          <tr><td>test a, a</td><td>Check whether <code>a</code> is zero (very common)</td></tr>
+          <tr><td>jmp</td><td>Unconditional jump</td></tr>
+          <tr><td>jz / je</td><td>Jump if equal / zero &nbsp;·&nbsp; jnz/jne: if not</td></tr>
+          <tr><td>call</td><td>Call a function</td></tr>
+          <tr><td>ret</td><td>Return from a function</td></tr>
+          <tr><td>push / pop</td><td>Push onto / pop off the stack</td></tr>
+        </table>
+
+        <h3>Calling convention (x64 Windows)</h3>
+        <p>When a function is called, arguments go in order into <code class="i">rcx, rdx, r8, r9</code>; extras go on the
+        stack. The return value is in <code class="i">rax</code>. So when you see this:</p>
+        <div class="code"><div class="hdr">.text — a call</div><pre><span class="m">mov</span>     <span class="r">rcx</span>, <span class="n">1</span>
+<span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aHello</span>         <span class="cm">; "hello"</span>
+<span class="m">call</span>    <span class="nm">WriteMessage</span>       <span class="cm">; WriteMessage(1, "hello")</span>
+<span class="m">mov</span>     <span class="r">ebx</span>, <span class="r">eax</span>           <span class="cm">; save the return value</span></pre></div>
+        <p>…you're actually reading the call <code class="i">WriteMessage(1, "hello")</code>.</p>
+
+        <h3>Stack variables</h3>
+        <p>Local variables live on the stack. tlk-hex names them automatically as <code class="i">var_18</code> (local)
+        and <code class="i">arg_8</code> (argument); the text <code class="i">[rsp+88h+var_18]</code> means "a local
+        variable of this function". Hover over it and press <kbd>N</kbd> to give it a meaningful name.</p>
+      </div>
+
+      <div class="mod" id="m4">
+        <div class="mod-tag">module 04</div>
+        <h2>First analysis <span class="lvl i">intermediate</span></h2>
+        <p>Now let's read a real function. Take the example from the home page and solve it line by line:</p>
+        <div class="code"><div class="hdr">IDA View-A · ParseConfigFile</div><pre><span class="a">140001008</span> <span class="nm">ParseConfigFile</span> <span class="m">proc near</span>
+<span class="a">140001008</span>   <span class="m">mov</span>     <span class="r">r11</span>, <span class="r">rsp</span>
+<span class="a">14000100B</span>   <span class="m">sub</span>     <span class="r">rsp</span>, <span class="n">88h</span>              <span class="cm">; reserve stack space</span>
+<span class="a">140001012</span>   <span class="m">mov</span>     <span class="r">rax</span>, <span class="r">cs</span>:<span class="nm">__security_cookie</span>  <span class="cm">; stack protection</span>
+<span class="a">140001019</span>   <span class="m">xor</span>     <span class="r">rax</span>, <span class="r">rsp</span>
+<span class="a">14000101C</span>   <span class="m">mov</span>     [<span class="r">rsp</span>+<span class="n">88h</span>+<span class="kw">var_18</span>], <span class="r">rax</span>
+<span class="a">140001053</span>   <span class="m">lea</span>     <span class="r">rcx</span>, <span class="nm">aConfigLoaded</span>    <span class="cm">; "config loaded: %s"</span>
+<span class="a">14000105A</span>   <span class="m">mov</span>     <span class="r">edx</span>, <span class="r">esi</span>
+<span class="a">140001073</span>   <span class="m">call</span>    <span class="nm">LogMessage</span>            <span class="cm">; LogMessage("config loaded: %s", esi)</span>
+<span class="a">140001080</span>   <span class="m">call</span>    <span class="im">cs:__security_check_cookie</span>
+<span class="a">140001085</span>   <span class="m">add</span>     <span class="r">rsp</span>, <span class="n">88h</span>              <span class="cm">; give the space back</span>
+<span class="a">14000108C</span>   <span class="m">retn</span></pre></div>
+
+        <p><b>What did we read?</b></p>
+        <ul>
+          <li><b>The prologue</b> (<code class="i">sub rsp</code> + security_cookie): the standard opening of every compiler-generated function. Protection against stack overflows. The logic isn't here.</li>
+          <li><b>The middle</b>: <code class="i">lea rcx, aConfigLoaded</code> takes the address of a string, <code class="i">call LogMessage</code> prints it. So this function <b>logs</b> something.</li>
+          <li><b>The epilogue</b> (<code class="i">security_check</code> + <code class="i">add rsp</code> + <code class="i">retn</code>): the standard closing.</li>
+        </ul>
+        <p>So once you strip the noise, the essence of the function is one line: <i>log the "config loaded" message</i>.
+        Half of real analysis is recognising these standard patterns and <b>focusing on what matters</b>.</p>
+
+        <div class="note"><b>tlk-hex tip:</b> wondering where a string is used? Hover over it and press <kbd>X</kbd> — every
+        place that uses it is listed. The reverse works too: double-click a <code class="i">call</code> target to step
+        into that function.</div>
+
+        <h3>Where to start?</h3>
+        <ul>
+          <li><b>Strings</b> (<kbd>Shift</kbd>+<kbd>F12</kbd>): text like "invalid password", "connecting to..." gives away the program's intent. Press <kbd>X</kbd> on an interesting string to reach the code using it.</li>
+          <li><b>Imports</b>: see <code class="i">socket</code>/<code class="i">connect</code> and there's networking; see <code class="i">CryptEncrypt</code> and there's encryption.</li>
+          <li><b>Entry point</b> (<kbd>Ctrl</kbd>+<kbd>E</kbd>): follow the flow from the very top.</li>
+          <li><b>Findings tab</b>: tlk-hex already summarises suspicious/interesting spots — a quick map.</li>
+        </ul>
+      </div>
+
+      <div class="mod" id="m5">
+        <div class="mod-tag">module 05</div>
+        <h2>Recover the flow <span class="lvl i">intermediate</span></h2>
+        <p>Press <kbd>Space</kbd> for the graph. The arrows between blocks are the program's logic. Learn a few patterns:</p>
+
+        <h3>if / else</h3>
+        <p>A <code class="i">cmp</code> + conditional jump is a branch. Two arrows leave the block:
+        <b style="color:var(--num)">green</b> = condition true, <b style="color:var(--red)">red</b> = false.</p>
+        <div class="code"><div class="hdr">a decision</div><pre><span class="m">cmp</span>     <span class="r">eax</span>, <span class="n">0</span>
+<span class="m">jz</span>      <span class="nm">loc_error</span>      <span class="cm">; if eax == 0 jump to error</span>
+<span class="cm">; ... falling through here means eax != 0 (success path)</span></pre></div>
+        <p>In C: <code class="i">if (eax == 0) goto error;</code></p>
+
+        <h3>loop</h3>
+        <p>When you see an arrow in the graph that <b>goes back up</b>, that's a loop: the block jumps back to an earlier
+        one. It usually ends with a counter (<code class="i">inc</code>/<code class="i">dec</code>) and a <code class="i">cmp</code>.</p>
+
+        <h3>switch</h3>
+        <p>Branching many ways based on a value. tlk-hex resolves jump tables automatically and adds comments like
+        <code class="i">jumptable ... case 3</code> — you read directly which value goes where.</p>
+
+        <div class="note"><b>Shortcut:</b> instead of reading block by block, press <kbd>F5</kbd>. tlk-hex converts the flow
+        into a C-like summary with <code class="i">if</code>/<code class="i">goto</code> for you. Not exact, but it conveys
+        the logic fast.</div>
+      </div>
+
+      <div class="mod" id="m6">
+        <div class="mod-tag">module 06</div>
+        <h2>Practice <span class="lvl a">advanced</span></h2>
+        <p>Reading doesn't teach; solving does. Safe and legitimate ways to begin:</p>
+        <ul>
+          <li><b>Compile your own program, then analyse it.</b> Write a small C/C++ program, open it in tlk-hex. Since you know the source, you see the assembly mapping one to one — the fastest way to learn.</li>
+          <li><b>CTF (Capture The Flag):</b> the "reversing" categories of security competitions are designed exactly for this; they're files made for you to solve.</li>
+          <li><b>Crackmes:</b> practice programs the author deliberately shares as "solve me". The goal here is to <i>understand</i> a mechanism — not to crack someone's commercial software.</li>
+          <li><b>Malware analysis:</b> advanced. Examine samples in an isolated environment, statically only (tlk-hex never runs them, so reading is safe).</li>
+        </ul>
+
+        <div class="note warn"><b>Where's the line?</b> Reverse engineering is legitimate for learning, inspecting your own
+        code, security research and authorized testing. Removing the licence/copy protection of software you didn't buy
+        (cracking) or infringing someone else's rights is outside that. Work on files you're authorized for.</div>
+
+        <h3>A working routine</h3>
+        <ul>
+          <li>First <b>get an overview</b>: strings, imports, findings. What does the program roughly do?</li>
+          <li><b>Enter from an interesting clue</b> (<kbd>X</kbd> from a string/import into code).</li>
+          <li>Read the function <b>in the graph</b>, strip the standard patterns; verify with <kbd>F5</kbd>.</li>
+          <li><b>Name things</b> (<kbd>N</kbd>) and <b>leave notes</b> (<kbd>;</kbd>). As you understand, the file becomes readable.</li>
+          <li><b>Save</b> with <kbd>Ctrl</kbd>+<kbd>W</kbd>; continue tomorrow where you left off.</li>
+        </ul>
+      </div>
+
+      <div class="mod" id="glossary">
+        <div class="mod-tag">reference</div>
+        <h2>Glossary</h2>
+        <dl class="gloss">
+          <dt>Disassembler</dt><dd>A tool that turns machine-code bytes into readable assembly. tlk-hex is a disassembler.</dd>
+          <dt>Decompiler</dt><dd>A tool that tries to turn assembly into higher-level (C-like) code. tlk-hex's <kbd>F5</kbd> is like a simple decompiler.</dd>
+          <dt>Assembly</dt><dd>The human-readable form of processor instructions — <code>mov</code>, <code>call</code>, <code>jmp</code>…</dd>
+          <dt>Register</dt><dd>Very fast small storage inside the processor: <code>rax</code>, <code>rcx</code>…</dd>
+          <dt>Opcode</dt><dd>The raw byte(s) representing an instruction. <code>C3</code> = <code>ret</code>, etc.</dd>
+          <dt>RVA</dt><dd>Relative Virtual Address — a memory address relative to the image base.</dd>
+          <dt>Entry point</dt><dd>The address of the first instruction run when the program starts.</dd>
+          <dt>Import</dt><dd>An external function the program uses from another DLL.</dd>
+          <dt>Xref (cross-reference)</dt><dd>References to an address/name — "where is this called/used from?"</dd>
+          <dt>Stack</dt><dd>The LIFO memory area functions use for locals and return addresses.</dd>
+          <dt>Calling convention</dt><dd>The rule defining which register/stack order arguments are passed in.</dd>
+          <dt>Prologue / Epilogue</dt><dd>A function's standard opening/closing code (stack setup, protection).</dd>
+          <dt>Basic block</dt><dd>A straight-line instruction sequence with no branching; one box in the graph.</dd>
+          <dt>PDB / Symbol</dt><dd>A helper file containing function names. Once loaded, <code>sub_X</code> becomes its real name.</dd>
+          <dt>Patch</dt><dd>Changing bytes in the file. In tlk-hex via <kbd>F2</kbd>; without breaking the original.</dd>
+          <dt>Packer</dt><dd>Protection that compresses/encrypts code and unpacks at runtime. Shows up as high entropy.</dd>
+        </dl>
+      </div>
+
+      <div class="btns mt">
+        <a class="btn solid" href="usage.html">usage guide →</a>
+        <a class="btn line" href="shortcuts.html">shortcuts</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interactive disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">authorized analysis · education · research only</div>
+  </div>
+</footer>
+
+</body>
+</html>

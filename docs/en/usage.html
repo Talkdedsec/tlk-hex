@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage — tlk-hex</title>
+<meta name="description" content="How to use tlk-hex: opening files, navigating, graph and pseudocode, search, renaming, patching, symbols and AI.">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../img/icon-256.png">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="../img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html">overview</a>
+      <a href="usage.html" class="on">usage</a>
+      <a href="learn.html">learn</a>
+      <a href="shortcuts.html">shortcuts</a>
+      <a href="index.html#faq">faq</a>
+      <span class="lang"><a href="../kullanim.html">TR</a><a href="usage.html" class="on">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding-bottom:20px">
+  <div class="wrap">
+    <span class="eyebrow">getting started</span>
+    <h1 style="font-size:clamp(32px,5vw,48px)">How to <em>use it</em></h1>
+    <p class="lead">From opening a file to naming things and saving your work, in order.</p>
+  </div>
+</section>
+
+<section style="padding-top:20px">
+  <div class="wrap">
+    <div class="steps">
+
+      <div class="step">
+        <div class="idx">step<b>01</b></div>
+        <div>
+          <h3>Open a file</h3>
+          <p>On the welcome screen press <b>Open file</b> (<kbd>Ctrl</kbd>+<kbd>O</kbd>) or drag the file straight onto
+          the window. EXE, DLL, SYS, ELF or raw binary — all work.</p>
+          <p>Analysis starts automatically; when the <b>AU</b> indicator in the status bar turns green you're ready.
+          Large files may take a few seconds.</p>
+          <div class="note">On first open, if the file has symbols it asks "download them?". Say <b>Yes</b> and
+          <code class="i">sub_XXXX</code> names turn into real function names.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>02</b></div>
+        <div>
+          <h3>Navigate</h3>
+          <p>Click a function in the <b>Functions</b> list on the left — the code opens in the middle. Type a name or
+          address into the <b>Go / search</b> box at the top (<kbd>Ctrl</kbd>+<kbd>F</kbd>) and suggestions appear.</p>
+          <p><b>Double-click</b> a name in the code (or <kbd>Enter</kbd>) to jump there; <kbd>Esc</kbd> goes back. The
+          mouse back/forward buttons work too. Hover over a name to preview its contents.</p>
+          <p>The coloured strip at the very top is a map of the whole file — click anywhere to jump there.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>03</b></div>
+        <div>
+          <h3>Graph &amp; pseudocode</h3>
+          <p><kbd>Space</kbd> toggles between text and the <b>control-flow graph</b>. Edges are colour-coded:
+          green = condition true, red = false, blue = unconditional. <kbd>Ctrl</kbd>+wheel to zoom.</p>
+          <p><kbd>F5</kbd> opens the selected function's <b>C-like pseudocode</b> — a more readable summary than assembly.</p>
+          <div class="shot" style="margin-top:18px;border:1px solid var(--line-2);border-radius:10px;overflow:hidden"><img src="../img/pseudo.png" alt="Pseudocode view" style="width:100%;display:block"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>04</b></div>
+        <div>
+          <h3>Search</h3>
+          <p>For detailed search use the <b>Search</b> button in the toolbar or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>.
+          Pick a scope and type:</p>
+          <p>
+            <code class="i">Names</code> function/variable names &nbsp;·&nbsp;
+            <code class="i">Strings</code> text in the file &nbsp;·&nbsp;
+            <code class="i">Code</code> instruction lines &nbsp;·&nbsp;
+            <code class="i">Bytes</code> e.g. <code class="i">48 8B ?? 05</code> (<code class="i">??</code> = any byte) &nbsp;·&nbsp;
+            <code class="i">Immediate</code> instructions where a number appears.
+          </p>
+          <p>Click a result = preview, double-click / <kbd>Enter</kbd> = jump there.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>05</b></div>
+        <div>
+          <h3>Take notes, name things</h3>
+          <p>Stop on a name or address and:
+            <kbd>N</kbd> rename &nbsp;·&nbsp;
+            <kbd>;</kbd> comment &nbsp;·&nbsp;
+            <kbd>X</kbd> "where is this used?" &nbsp;·&nbsp;
+            <kbd>C</kbd>/<kbd>D</kbd>/<kbd>A</kbd>/<kbd>U</kbd> code / data / string / undefined.</p>
+          <div class="note"><b>Save:</b> <kbd>Ctrl</kbd>+<kbd>W</kbd>. Names, comments and patches go to a separate
+          database — reopen the file and everything comes back, the original is untouched.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>06</b></div>
+        <div>
+          <h3>Hex &amp; patch</h3>
+          <p>In the <b>Hex View</b> tab you see raw bytes; press <kbd>F2</kbd> to enter edit mode and change a byte.
+          Changes are kept as patches.</p>
+          <p>From the File menu you can apply patched bytes to a new file or export them as <b>DIF</b>. The original file
+          is never broken.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>07</b></div>
+        <div>
+          <h3>Symbols</h3>
+          <p>For Windows files, <b>File → Download symbols</b> brings real function names (also asked on first open).
+          If you have your own <code class="i">.pdb</code>, use <b>File → Load PDB file</b>.</p>
+          <p>Downloaded symbols are cached; the same file is named offline and instantly next time.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="idx">step<b>08</b></div>
+        <div>
+          <h3>AI help <span style="color:var(--faint);font-size:14px;font-weight:400">— optional</span></h3>
+          <p>Enter your own API key in <b>Options → AI support</b>. Then set the Output panel mode to <b>AI</b> and ask
+          "what does this function do?", or use <b>AI decompile</b> in the Pseudocode tab for a cleaner translation.</p>
+          <div class="note warn">AI output is an aid, not ground truth — verify important conclusions in the code yourself.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="center mt">
+      <a class="btn solid" href="shortcuts.html">all keyboard shortcuts →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interactive disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">authorized analysis · education · research only</div>
+  </div>
+</footer>
+
+</body>
+</html>
