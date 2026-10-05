@@ -539,7 +539,9 @@ public partial class MainWindow : Window
         Add(help, "Hakkında", "", () => Dialogs.Info(this, "tlk-hex hakkında",
             "tlk-hex - interaktif disassembler\n\nx86 / x64 PE, ELF ve ham binary için statik analiz:\n" +
             "otomatik analiz, xref'ler, graph görünümü, hex view, yamalama,\nbasit pseudocode ve AI desteği.\n\n" +
-            "Disassembly motoru: Iced\nPencere yerleşimi: AvalonDock"), false);
+            "Disassembly motoru: Iced\nPencere yerleşimi: AvalonDock\n\n" +
+            "Yazar: Talkdedsec\nhttps://github.com/Talkdedsec/tlk-hex\n" +
+            "Lisans: MIT + Commons Clause (satış yasak, atıf zorunlu)\n© 2026 Talkdedsec"), false);
     }
 
     private void FillRecent()

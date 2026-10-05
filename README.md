@@ -7,7 +7,7 @@
 ### Interactive disassembler — look inside compiled files.
 
 [![build](https://github.com/Talkdedsec/tlk-hex/actions/workflows/build.yml/badge.svg)](https://github.com/Talkdedsec/tlk-hex/actions/workflows/build.yml)
-[![license](https://img.shields.io/badge/license-MIT-8b5cf6?style=flat-square)](LICENSE)
+[![license](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-8b5cf6?style=flat-square)](LICENSE)
 ![platform](https://img.shields.io/badge/platform-Windows-1c1826?style=flat-square)
 ![.NET](https://img.shields.io/badge/.NET-10-5a32bd?style=flat-square)
 ![arch](https://img.shields.io/badge/x86%20%2F%20x64-PE%20·%20ELF%20·%20BIN-6e9ef0?style=flat-square)
@@ -114,7 +114,12 @@ Issues and pull requests are welcome — see [CONTRIBUTING](CONTRIBUTING.md). Se
 
 ## 📄 License
 
-[MIT](LICENSE) © 2026 Talkdedsec
+Source-available under the **MIT License with the [Commons Clause](https://commonsclause.com/)**:
+you may use, modify and share it freely, and you **must keep the attribution** (author name and this
+repository link) in copies, **but you may not sell it**. © 2026 [Talkdedsec](https://github.com/Talkdedsec/tlk-hex).
+
+> Not OSI "open source" (it restricts selling). The author keeps all rights and may grant commercial
+> licenses separately.
 
 <details>
 <summary><b>Türkçe</b></summary>
