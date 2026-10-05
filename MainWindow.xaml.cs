@@ -793,7 +793,6 @@ public partial class MainWindow : Window
             SetAu(false);
         }
         if (s == null) { UpdateEnabled(); UpdateWelcome(); return; }
-        Dispatcher.BeginInvoke(() => SetAu(false), System.Windows.Threading.DispatcherPriority.ContextIdle);
 
         _s = s;
         _result = null;

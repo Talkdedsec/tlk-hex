@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-06
+
 ### Added
 - Own PE / ELF / raw-binary loader and x86/x64 disassembler engine (Iced-based).
 - IDA-style text view: addresses, cross-references, stack variables, import calls, segments.
@@ -20,3 +22,5 @@ All notable changes to this project are documented here. The format is based on
 - Website with usage guide, learning course, shortcuts and FAQ (English + Turkish).
 
 [Unreleased]: https://github.com/Talkdedsec/tlk-hex/commits/main
+
+[0.1.0]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.0

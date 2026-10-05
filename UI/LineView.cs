@@ -31,7 +31,7 @@ public abstract class LineView : Grid
     private double _dpi = 1;
 
     public long Top { get; private set; }
-    public long Cursor { get; private set; }
+    public new long Cursor { get; private set; }   // satır indeksi (FrameworkElement.Cursor gizlenir; fare imleci kullanılmıyor)
     public int CursorCol { get; protected set; }
     public long SelAnchor { get; set; } = -1;
     public string? HighlightWord { get; set; }
