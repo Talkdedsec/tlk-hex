@@ -4,6 +4,8 @@ using System.Text.Json;
 
 namespace tlk_hex;
 
+// Saglayici-bagimsiz AI istemcisi (OpenAI-uyumlu /chat/completions).
+// Uc nokta, anahtar ve model tamamen kullanici tarafindan belirlenir.
 public static class AiClient
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(90) };
@@ -35,9 +37,8 @@ public static class AiClient
 
     public static async Task<string> AskAsync(Settings cfg, string context, string question)
     {
-        string key = cfg.AiApiKey ?? "";
-        if (string.IsNullOrWhiteSpace(key))
-            return "AI anahtari tanimli degil. Ayarlar > AI bolumunden anahtarini gir.";
+        if (string.IsNullOrWhiteSpace(cfg.AiApiKey))
+            return "AI anahtari tanimli degil. Ayarlar > AI bolumunden uc nokta, anahtar ve model gir.";
 
         string system = "Sen bir tersine muhendislik ve zararli yazilim analizi uzmanisin. "
             + "Sana bir PE dosyasinin statik analiz ozeti verilecek. Turkce, kisa ve net yanitla. "
@@ -46,9 +47,7 @@ public static class AiClient
 
         try
         {
-            return cfg.AiProvider == "OpenAI"
-                ? await OpenAiAsync(cfg, system, userMsg)
-                : await AnthropicAsync(cfg, system, userMsg);
+            return await ChatAsync(cfg, system, userMsg);
         }
         catch (Exception ex)
         {
@@ -56,29 +55,8 @@ public static class AiClient
         }
     }
 
-    private static async Task<string> AnthropicAsync(Settings cfg, string system, string user)
-    {
-        var body = new
-        {
-            model = string.IsNullOrWhiteSpace(cfg.AiModel) ? "claude-sonnet-5-5" : cfg.AiModel,
-            max_tokens = 1024,
-            system,
-            messages = new[] { new { role = "user", content = user } },
-        };
-        var req = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
-        req.Headers.Add("x-api-key", cfg.AiApiKey);
-        req.Headers.Add("anthropic-version", "2023-06-01");
-        req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-        var resp = await Http.SendAsync(req);
-        string txt = await resp.Content.ReadAsStringAsync();
-        if (!resp.IsSuccessStatusCode) return $"API {(int)resp.StatusCode}: {Trim(txt)}";
-
-        using var doc = JsonDocument.Parse(txt);
-        return doc.RootElement.GetProperty("content")[0].GetProperty("text").GetString() ?? "(bos yanit)";
-    }
-
-    private static async Task<string> OpenAiAsync(Settings cfg, string system, string user)
+    // OpenAI-uyumlu sohbet tamamlama ucu (ucgen: base URL + anahtar + model)
+    private static async Task<string> ChatAsync(Settings cfg, string system, string user)
     {
         string baseUrl = string.IsNullOrWhiteSpace(cfg.AiBaseUrl)
             ? "https://api.openai.com/v1" : cfg.AiBaseUrl.TrimEnd('/');

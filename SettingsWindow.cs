@@ -30,7 +30,7 @@ public sealed class SettingsWindow : Window
             BackgroundDim = cur.BackgroundDim, FontFamily = cur.FontFamily, FontSize = cur.FontSize, GraphByDefault = cur.GraphByDefault,
             ShowQuickStart = cur.ShowQuickStart, AskLoadOptions = cur.AskLoadOptions, SymbolMode = cur.SymbolMode, ShowPrefix = cur.ShowPrefix, OpcodeBytes = cur.OpcodeBytes,
             MaxXrefs = cur.MaxXrefs, MinStrLen = cur.MinStrLen, AutoSaveDb = cur.AutoSaveDb,
-            AiProvider = cur.AiProvider, AiApiKey = cur.AiApiKey, AiModel = cur.AiModel, AiBaseUrl = cur.AiBaseUrl,
+            AiApiKey = cur.AiApiKey, AiModel = cur.AiModel, AiBaseUrl = cur.AiBaseUrl,
         };
 
         var root = new StackPanel { Margin = new Thickness(14) };
@@ -92,19 +92,14 @@ public sealed class SettingsWindow : Window
         var autosave = new CheckBox { Content = "Kapatırken veritabanını sormadan kaydet", IsChecked = cur.AutoSaveDb, Margin = new Thickness(0, 4, 0, 0) };
         root.Children.Add(autosave);
 
-        // ---- AI ----
+        // ---- AI (saglayici-bagimsiz, OpenAI-uyumlu) ----
         root.Children.Add(Header("AI desteği"));
-        var prov = new ComboBox();
-        foreach (var p in new[] { new Settings().AiProvider, "OpenAI" }.Distinct()) prov.Items.Add(p);
-        prov.SelectedItem = cur.AiProvider;
-        if (prov.SelectedIndex < 0) prov.SelectedIndex = 0;
-        root.Children.Add(Row("Sağlayıcı", prov));
+        var baseUrl = new TextBox { Text = cur.AiBaseUrl };
+        root.Children.Add(Row("Uç nokta (OpenAI uyumlu API)", baseUrl));
         var key = new PasswordBox { Password = cur.AiApiKey ?? "" };
         root.Children.Add(Row("API anahtarı", key));
         var model = new TextBox { Text = cur.AiModel };
-        root.Children.Add(Row("Model (boş = varsayılan)", model));
-        var baseUrl = new TextBox { Text = cur.AiBaseUrl };
-        root.Children.Add(Row("Özel uç nokta (OpenAI uyumlu)", baseUrl));
+        root.Children.Add(Row("Model", model));
 
         var ok = Dialogs.Btn("Tamam", true);
         var cancel = Dialogs.Btn("İptal", false, true);
@@ -127,7 +122,6 @@ public sealed class SettingsWindow : Window
             if (int.TryParse(ms.Text, out var m)) Result.MinStrLen = Math.Clamp(m, 2, 64);
             Result.AutoSaveDb = autosave.IsChecked == true;
             Result.SymbolMode = sym.SelectedIndex switch { 1 => "always", 2 => "never", _ => "ask" };
-            Result.AiProvider = prov.SelectedItem?.ToString() ?? Result.AiProvider;
             Result.AiApiKey = string.IsNullOrWhiteSpace(key.Password) ? null : key.Password;
             Result.AiModel = model.Text.Trim();
             Result.AiBaseUrl = baseUrl.Text.Trim();

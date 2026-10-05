@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-06
+
+### Added
+- Module 08 "Patching" tutorial (EN + TR), and crackmes 05 (patch target) and 06 (stack string) — six practice levels in total.
+
+### Changed
+- AI support is now provider-agnostic: a single OpenAI-compatible endpoint you configure (base URL, key, model). No vendor is hardcoded.
+
 ## [0.1.1] - 2026-10-06
 
 ### Added
@@ -37,3 +45,4 @@ All notable changes to this project are documented here. The format is based on
 
 [0.1.0]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.0
 [0.1.1]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.1
+[0.1.2]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.2

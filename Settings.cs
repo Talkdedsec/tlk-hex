@@ -31,7 +31,6 @@ public class Settings
     public bool AutoSaveDb { get; set; } = false;
 
     // AI ayarlari
-    public string AiProvider { get; set; } = "Anthropic";  // Anthropic | OpenAI
     public string? AiApiKey { get; set; }
     public string AiModel { get; set; } = "";
     public string AiBaseUrl { get; set; } = "";  // OpenAI uyumlu ozel uc nokta (opsiyonel)
