@@ -16,6 +16,8 @@ no real protection — just logic to understand with tlk-hex.
 | 02 | easy-medium | The password is **XOR-encoded** (not in Strings). Read the decode loop / key byte. |
 | 03 | medium | A **name → serial** check. Read the hash loop and reconstruct the algorithm (keygen). |
 | 04 | medium-hard | An 8-char key transformed per-index and compared to an embedded array. **Reverse the transform or patch the check.** |
+| 05 | medium | A check that's impractical to satisfy by typing. The intended solution is to **patch the branch** in Hex View (`F2`). |
+| 06 | medium | The password is a **stack string** (built byte-by-byte), so it is **not** in Strings. Read the byte stores to recover it. |
 
 ## How to play
 
@@ -53,6 +55,8 @@ gcc -O2 -s -o bin/crackme01.exe src/crackme01.c
 - **03** — serial = `djb2`-style hash of the name: `key=0x1505; key=key*33+c; serial = key % 90000 + 10000`.
   Example: name `talkdedsec` → serial `38105`.
 - **04** — key: `RE_2026!` (each byte: `target[i] = ((key[i] ^ (i*0x11)) + 0x20) & 0xFF`; reverse it per index).
+- **05** — no simple key: the hash target `0xDEADBEEF` is impractical to hit. Find the `cmp … 0DEADBEEFh` and **patch the conditional jump** (e.g. `jnz`→`jz` or force the jump), then apply-to-file / export DIF.
+- **06** — password: `st4ck_k3y` (built on the stack byte-by-byte; read the `mov byte ptr [rsp+x], 'c'` stores).
 
 </details>
 
@@ -74,6 +78,8 @@ sadece tlk-hex ile anlaşılacak mantık.
 | 02 | kolay-orta | Parola **XOR'lu** (Strings'te yok). Çözme döngüsünü / anahtar baytı oku. |
 | 03 | orta | **İsim → seri** kontrolü. Hash döngüsünü oku, algoritmayı çıkar (keygen). |
 | 04 | orta-zor | 8 karakterlik anahtar indekse göre dönüştürülüp gömülü diziyle karşılaştırılır. Dönüşümü tersine çevir ya da kontrolü yama. |
+| 05 | orta | Yazarak tutturması zor bir kontrol. Amaç: dalı **Hex View**'da (`F2`) **yamalamak**. |
+| 06 | orta | Parola bir **stack string** (bayt bayt kurulur) — Strings'te **yok**. Bayt yazmalarını okuyarak çıkar. |
 
 **Kurallar:** Bunlar **senin** alıştırma hedeflerin — analiz tamamen yasal ve güvenli. Beceriler öğrenme,
 CTF, güvenlik araştırması ve izinli analiz içindir. Satın almadığın yazılımın korumasını kırmak için değil.

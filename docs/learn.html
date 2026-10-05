@@ -51,6 +51,7 @@
       <a href="#m5"><div class="pn">module 05</div><h4>Recover the flow</h4><p>Reading if / loop / switch from the graph.</p></a>
       <a href="#m6"><div class="pn">module 06</div><h4>Practice</h4><p>Where and how to practise; legitimate exercise sources.</p></a>
       <a href="#m7"><div class="pn">module 07</div><h4>A full EXE, end to end</h4><p>Combine everything in one real workflow: string → xref → decision → verify.</p></a>
+      <a href="#m8"><div class="pn">module 08</div><h4>Patching</h4><p>Change behaviour instead of finding the key: flip a branch, skip a check.</p></a>
     </div>
   </div>
 </section>
@@ -67,6 +68,7 @@
       <a href="#m5"><span class="mn">05</span>Recover the flow</a>
       <a href="#m6"><span class="mn">06</span>Practice</a>
       <a href="#m7"><span class="mn">07</span>A full EXE</a>
+      <a href="#m8"><span class="mn">08</span>Patching</a>
       <a href="#glossary"><span class="mn">··</span>Glossary</a>
     </aside>
 
@@ -521,6 +523,68 @@ runtime unpacking (packers that unpack while running)</pre></div>
         When a binary first opens it looks like one huge file of meaningless addresses. Every string, xref and function
         you solve turns a small part of that unknown into something meaningful. The goal isn't to memorize all the
         assembly; it's to <b>rebuild the program's behaviour step by step.</b></div>
+      </div>
+
+      <div class="mod" id="m8">
+        <div class="mod-tag">module 08</div>
+        <h2>Patching: change what a program does <span class="lvl i">intermediate</span></h2>
+        <p>Sometimes you don't want to <i>find</i> the right password/serial — you want to <b>change the program's
+        behaviour</b>: e.g. flip a check so it "always passes". That's <b>patching</b>: editing the bytes on disk.
+        tlk-hex does this safely — it <b>never touches the original file</b> and keeps changes separately.</p>
+        <div class="note warn">This skill is for <b>your own software</b>, CTFs, crackmes and <b>authorized</b> analysis —
+        not for removing the protection of software you didn't buy.</div>
+
+        <h3>When to patch</h3>
+        <ul>
+          <li>When satisfying the check (a keygen) is <b>hard</b>, but changing a single branch is <b>easy</b>.</li>
+          <li>When you want to quickly <b>disable</b> a check and study what's below it.</li>
+          <li>When you want to temporarily change a value/flow to test a hypothesis.</li>
+        </ul>
+
+        <h3>Find the conditional jump</h3>
+        <p>Most checks end in a <code class="i">cmp</code>/<code class="i">test</code> + a <b>conditional jump</b>. A typical
+        "deny on failure" pattern:</p>
+        <div class="code"><div class="hdr">a decision</div><pre><span class="m">cmp</span>     <span class="r">eax</span>, <span class="nm">0DEADBEEFh</span>
+<span class="m">jnz</span>     <span class="nm">loc_denied</span>        <span class="cm">; if NOT equal, jump to deny</span>
+<span class="cm">; ... falling through here is the "granted" path</span></pre></div>
+        <p>There are a few ways to change the flow — each is a one-byte edit:</p>
+        <table class="tbl">
+          <tr><th>Goal</th><th>How</th><th>Byte</th></tr>
+          <tr><td>Invert the condition</td><td><code>jnz</code> → <code>jz</code> (or vice versa)</td><td><code>75</code> ↔ <code>74</code></td></tr>
+          <tr><td>Never take the jump</td><td><b>NOP</b> the conditional jump</td><td><code>90 90</code></td></tr>
+          <tr><td>Always jump</td><td>Make it <b>unconditional</b>: <code>jnz</code> → <code>jmp</code></td><td><code>75</code> → <code>EB</code></td></tr>
+        </table>
+        <div class="note"><code class="i">74</code> = <code>jz/je</code>, <code class="i">75</code> = <code>jnz/jne</code>,
+        <code class="i">90</code> = <code>nop</code>, <code class="i">EB</code> = short <code>jmp</code>. Memorizing these
+        four bytes speeds you up a lot.</div>
+
+        <h3>Patch it in Hex View</h3>
+        <ol style="color:var(--dim);font-size:15.5px;line-height:1.9">
+          <li>Place the cursor on the instruction to change (e.g. <code class="i">jnz loc_denied</code>).</li>
+          <li>Switch to the <b>Hex View</b> tab; the cursor lands on that byte. Press <kbd>F2</kbd> to enter <b>edit mode</b>.</li>
+          <li>Type the byte: change <code class="i">75</code> to <code class="i">74</code> (or whatever you need). <kbd>F2</kbd> / <kbd>Esc</kbd> to leave.</li>
+          <li>Back in IDA View the instruction now reads <code class="i">jz</code> — the logic is inverted.</li>
+        </ol>
+
+        <h3>Apply to disk (original untouched)</h3>
+        <p>The patch lives in the database for now. To produce a permanent file:</p>
+        <ul>
+          <li><b>File → Apply patches to file…</b> — writes a <b>new</b> exe with the patched bytes (original stays separate).</li>
+          <li><b>File → Create DIF file…</b> — exports the changed bytes as text (to share / document).</li>
+          <li><b>File → List patched bytes</b> — shows everything you changed in one list.</li>
+        </ul>
+        <div class="note warn">Patching changes behaviour: keep a <b>backup</b> first, <b>run and verify</b> the result,
+        and only do it on files you're authorized for.</div>
+
+        <h3>Exercise</h3>
+        <p>Two of the practice crackmes are made for this module:</p>
+        <ul>
+          <li><b>crackme05</b> — the right key is hard to find (target <code class="i">0DEADBEEFh</code>). Find the branch
+              after the <code class="i">cmp</code> and <b>patch it</b> → "Access granted".</li>
+          <li><b>crackme06</b> — the password is a <b>stack string</b> (not in Strings); recover it by reading the byte stores.</li>
+        </ul>
+        <p>Grab both from the <a class="inl" href="https://github.com/Talkdedsec/tlk-hex/releases/tag/crackmes-v1">crackmes
+        release</a>. The other levels fit the workflow in <a class="inl" href="#m7">Module 07</a>.</p>
       </div>
 
       <div class="mod" id="glossary">

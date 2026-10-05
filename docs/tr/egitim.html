@@ -51,6 +51,7 @@
       <a href="#m5"><div class="pn">modül 05</div><h4>Akışı çıkar</h4><p>if / döngü / switch'i grafikten okuma.</p></a>
       <a href="#m6"><div class="pn">modül 06</div><h4>Pratik</h4><p>Nerede, neyle çalışılır; meşru alıştırma kaynakları.</p></a>
       <a href="#m7"><div class="pn">modül 07</div><h4>Baştan sona bir EXE</h4><p>Her şeyi tek gerçek analiz akışında birleştir: string → xref → karar → doğrula.</p></a>
+      <a href="#m8"><div class="pn">modül 08</div><h4>Yama (patching)</h4><p>Anahtarı bulmak yerine davranışı değiştir: bir dalı çevir, kontrolü atla.</p></a>
     </div>
   </div>
 </section>
@@ -68,6 +69,7 @@
       <a href="#m5"><span class="mn">05</span>Akışı çıkar</a>
       <a href="#m6"><span class="mn">06</span>Pratik</a>
       <a href="#m7"><span class="mn">07</span>Baştan sona bir EXE</a>
+      <a href="#m8"><span class="mn">08</span>Yama (patching)</a>
       <a href="#sozluk"><span class="mn">··</span>Sözlük</a>
     </aside>
 
@@ -529,6 +531,70 @@ runtime unpacking (çalışırken açılan paketleyiciler)</pre></div>
         Bir binary ilk açıldığında anlamsız adreslerden oluşan dev bir dosya gibidir. Çözdüğün her string, xref ve
         fonksiyon bu yapının küçük bir parçasını anlamlı kılar. Amaç bütün assembly'yi ezberlemek değil;
         <b>programın davranışını adım adım yeniden kurmaktır.</b></div>
+      </div>
+
+      <div class="mod" id="m8">
+        <div class="mod-tag">modül 08</div>
+        <h2>Yama: bir programın davranışını değiştirmek <span class="lvl i">orta</span></h2>
+        <p>Bazen doğru parolayı/serial'i <i>bulmak</i> istemezsin — programın <b>davranışını değiştirmek</b> istersin.
+        Örneğin bir kontrolü tersine çevirip "her zaman geçer" hale getirmek. Buna <b>yama (patching)</b> denir:
+        diskteki baytları düzenlersin. tlk-hex bunu güvenli yapar — <b>orijinal dosyaya dokunmaz</b>, değişiklikleri
+        ayrı tutar.</p>
+        <div class="note warn">Bu beceri; <b>kendi yazılımın</b>, CTF, crackme ve <b>izinli</b> analiz içindir. Satın
+        almadığın bir yazılımın korumasını kaldırmak için değil.</div>
+
+        <h3>Ne zaman yama?</h3>
+        <ul>
+          <li>Kontrolü sağlamak (keygen) <b>zor</b>, ama tek bir dalı değiştirmek <b>kolay</b> olduğunda.</li>
+          <li>Bir özelliği/kontrolü hızlıca <b>devre dışı</b> bırakıp aşağısını incelemek istediğinde.</li>
+          <li>Bir hipotezi test etmek için bir değeri/akışı geçici değiştirmek istediğinde.</li>
+        </ul>
+
+        <h3>Koşullu atlamayı bul</h3>
+        <p>Çoğu kontrol bir <code class="i">cmp</code>/<code class="i">test</code> + <b>koşullu atlama</b> ile biter.
+        Tipik bir "başarısızsa reddet" kalıbı:</p>
+        <div class="code"><div class="hdr">karar</div><pre><span class="m">cmp</span>     <span class="r">eax</span>, <span class="nm">0DEADBEEFh</span>
+<span class="m">jnz</span>     <span class="nm">loc_denied</span>        <span class="cm">; eşit DEĞİLSE reddet bloğuna atla</span>
+<span class="cm">; ... buraya düşerse "granted" (başarılı) yol</span></pre></div>
+        <p>Burada akışı değiştirmenin birkaç yolu var — hepsi tek bir baytı değiştirmekle olur:</p>
+        <table class="tbl">
+          <tr><th>İstediğin</th><th>Nasıl</th><th>Bayt</th></tr>
+          <tr><td>Koşulu tersine çevir</td><td><code>jnz</code> → <code>jz</code> (ya da tam tersi)</td><td><code>75</code> ↔ <code>74</code></td></tr>
+          <tr><td>Atlamayı hiç yapma</td><td>Koşullu atlamayı <b>NOP</b>'la</td><td><code>90 90</code></td></tr>
+          <tr><td>Her zaman atla</td><td>Koşulluyu <b>koşulsuz</b> yap: <code>jnz</code> → <code>jmp</code></td><td><code>75</code> → <code>EB</code></td></tr>
+        </table>
+        <div class="note"><code class="i">74</code> = <code>jz/je</code>, <code class="i">75</code> = <code>jnz/jne</code>,
+        <code class="i">90</code> = <code>nop</code>, <code class="i">EB</code> = kısa <code>jmp</code>. Bu dört baytı
+        ezberlemek işini çok hızlandırır.</div>
+
+        <h3>Hex View ile yamala</h3>
+        <ol style="color:var(--dim);font-size:15.5px;line-height:1.9">
+          <li>Değiştireceğin komutun üstüne gel (örn. <code class="i">jnz loc_denied</code>).</li>
+          <li><b>Hex View</b> sekmesine geç; imleç o baytta durur. <kbd>F2</kbd> ile <b>düzenleme moduna</b> gir.</li>
+          <li>Baytı yaz: <code class="i">75</code>'i <code class="i">74</code> yap (ya da ne istiyorsan). <kbd>F2</kbd> / <kbd>Esc</kbd> ile çık.</li>
+          <li>IDA View'a dön; komut artık <code class="i">jz</code> olarak görünür — mantık tersine döndü.</li>
+        </ol>
+
+        <h3>Diske uygula (orijinal bozulmadan)</h3>
+        <p>Yama şimdilik sadece veritabanında. Kalıcı bir dosya üretmek için:</p>
+        <ul>
+          <li><b>Dosya → Yamaları dosyaya uygula…</b> — yamalı baytlarla <b>yeni</b> bir exe yazar (orijinali ayrı kalır).</li>
+          <li><b>Dosya → DIF dosyası oluştur…</b> — değişen baytları metin olarak dışa aktarır (paylaşmak/belgelemek için).</li>
+          <li><b>Dosya → Yamalı baytları listele</b> — ne değiştirdiğini tek listede gösterir.</li>
+        </ul>
+        <div class="note warn">Yama davranışı değiştirir: önce bir <b>yedek</b> al, sonucu <b>çalıştırıp doğrula</b>, ve
+        yalnızca yetkili olduğun dosyalarda yap.</div>
+
+        <h3>Alıştırma</h3>
+        <p>Pratik crackme'lerden ikisi tam bu modül için:</p>
+        <ul>
+          <li><b>crackme05</b> — doğru anahtarı bulmak zor (hedef <code class="i">0DEADBEEFh</code>). <code class="i">cmp</code>'nin
+              ardındaki dalı bulup <b>yamala</b> → "Access granted".</li>
+          <li><b>crackme06</b> — parola bir <b>stack string</b> (Strings'te yok); bayt yazmalarını okuyarak çıkar.</li>
+        </ul>
+        <p>İkisini de <a class="inl" href="https://github.com/Talkdedsec/tlk-hex/releases/tag/crackmes-v1">crackmes
+        sürümünden</a> indir. Diğer seviyeler ve çözüm ipuçları <a class="inl" href="#m7">Modül 07</a>'deki akışla
+        birleşir.</p>
       </div>
 
       <div class="mod" id="sozluk">

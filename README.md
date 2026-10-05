@@ -110,6 +110,12 @@ tlk-hex is for learning, inspecting your own code, security research, CTFs and *
 only. It is **not** meant for removing the copy protection of software you didn't buy or for infringing
 others' rights. Use it on files you're authorized for.
 
+## 🎯 Practice
+
+Learn by doing: **[Practice crackmes](https://github.com/Talkdedsec/tlk-hex/releases/tag/crackmes-v1)** — six
+original reverse-engineering exercises (plaintext, XOR, keygen, per-index transform, patching, stack string).
+Step-by-step walkthrough in [Module 07](https://talkdedsec.github.io/tlk-hex/learn.html#m7) and [Module 08](https://talkdedsec.github.io/tlk-hex/learn.html#m8).
+
 ## 🤝 Contributing
 
 Issues and pull requests are welcome — see [CONTRIBUTING](CONTRIBUTING.md). Security reports: see

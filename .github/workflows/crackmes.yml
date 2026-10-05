@@ -23,7 +23,7 @@ jobs:
           export PATH="/c/mingw64/bin:/c/ProgramData/mingw64/mingw64/bin:$PATH"
           gcc --version
           mkdir -p bin
-          for n in 01 02 03 04; do
+          for n in 01 02 03 04 05 06; do
             gcc -O2 -s -o "bin/crackme$n.exe" "src/crackme$n.c"
           done
           ls -l bin
@@ -42,4 +42,4 @@ jobs:
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --title "Practice crackmes ($TAG)" --notes-file README.md
           fi
-          gh release upload "$TAG" bin/crackme01.exe bin/crackme02.exe bin/crackme03.exe bin/crackme04.exe tlk-hex-crackmes.zip --clobber
+          gh release upload "$TAG" bin/crackme0*.exe tlk-hex-crackmes.zip --clobber
