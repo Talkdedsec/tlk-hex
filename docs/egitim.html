@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eğitim — tlk-hex ile tersine mühendislik</title>
+<meta name="description" content="Sıfırdan tersine mühendislik: disassembler mantığı, PE/ELF dosya yapısı, x86/x64 assembly okuma, ilk analiz, akış çıkarma ve sözlük. tlk-hex üzerinden anlatım.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" type="image/png" href="img/icon-256.png">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html">genel</a>
+      <a href="kullanim.html">kullanım</a>
+      <a href="egitim.html" class="on">eğitim</a>
+      <a href="kisayollar.html">kısayollar</a>
+      <a href="index.html#sss">sss</a>
+    <span class="lang"><a href="egitim.html" class="on">TR</a><a href="en/learn.html">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding-bottom:30px">
+  <div class="wrap">
+    <span class="eyebrow">sıfırdan tersine mühendislik</span>
+    <h1 style="font-size:clamp(32px,5.5vw,52px)">Makine kodunu<br><em>okumayı</em> öğren.</h1>
+    <p class="lead">
+      Hiç assembly görmediysen de buradan başlayabilirsin. Kavramlardan gerçek bir fonksiyonu
+      satır satır çözmeye kadar — her adımı tlk-hex üzerinde deneyerek.
+    </p>
+    <div class="path">
+      <a href="#m1"><div class="pn">modül 01</div><h4>Temeller</h4><p>Disassembler, assembly, register, bellek — neyle uğraşıyoruz?</p></a>
+      <a href="#m2"><div class="pn">modül 02</div><h4>Dosya yapısı</h4><p>PE/ELF başlıkları, bölümler, import, giriş noktası.</p></a>
+      <a href="#m3"><div class="pn">modül 03</div><h4>Assembly okuma</h4><p>Register'lar, sık komutlar, çağrı kuralı, yığın.</p></a>
+      <a href="#m4"><div class="pn">modül 04</div><h4>İlk analiz</h4><p>Bir fonksiyonu tlk-hex ile baştan sona çözelim.</p></a>
+      <a href="#m5"><div class="pn">modül 05</div><h4>Akışı çıkar</h4><p>if / döngü / switch'i grafikten okuma.</p></a>
+      <a href="#m6"><div class="pn">modül 06</div><h4>Pratik</h4><p>Nerede, neyle çalışılır; meşru alıştırma kaynakları.</p></a>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:30px">
+  <div class="wrap edu-grid">
+
+    <!-- SOL: icindekiler -->
+    <aside class="toc">
+      <div class="toc-h">İçindekiler</div>
+      <a href="#m1"><span class="mn">01</span>Temeller</a>
+      <a href="#m2"><span class="mn">02</span>Dosya yapısı</a>
+      <a href="#m3"><span class="mn">03</span>Assembly okuma</a>
+      <a href="#m4"><span class="mn">04</span>İlk analiz</a>
+      <a href="#m5"><span class="mn">05</span>Akışı çıkar</a>
+      <a href="#m6"><span class="mn">06</span>Pratik</a>
+      <a href="#sozluk"><span class="mn">··</span>Sözlük</a>
+    </aside>
+
+    <!-- SAG: icerik -->
+    <div>
+
+      <!-- MODÜL 1 -->
+      <div class="mod" id="m1">
+        <div class="mod-tag">modül 01</div>
+        <h2>Temeller <span class="lvl b">başlangıç</span></h2>
+        <p>Bir program yazarsın, derleyici onu <b>makine koduna</b> çevirir: işlemcinin doğrudan çalıştırdığı baytlar.
+        Kaynak kod çoğu zaman elimizde olmaz — elimizde sadece o baytlar vardır. <b>Tersine mühendislik</b>, bu baytlardan
+        geriye doğru giderek programın ne yaptığını anlamaktır.</p>
+
+        <h3>Disassembler ne yapar?</h3>
+        <p>İşlemci baytları okur ve <b>komut</b> olarak çalıştırır. Örneğin <code class="i">48 83 EC 28</code> baytları
+        aslında "yığından 0x28 bayt yer aç" demektir. Bir <b>disassembler</b> bu baytları insanın okuyabileceği
+        <b>assembly</b>'ye çevirir:</p>
+        <div class="code"><div class="hdr">bayt → assembly</div><pre><span class="a">48 83 EC 28</span>      <span class="m">sub</span>     <span class="r">rsp</span>, <span class="n">28h</span>    <span class="cm">; yığında 40 bayt yer aç</span></pre></div>
+        <p>tlk-hex bütün dosyayı bu şekilde çözer, sonra fonksiyonları, çağrıları ve veriyi birbirine bağlar.</p>
+
+        <h3>Birkaç temel kavram</h3>
+        <ul>
+          <li><b>Register:</b> İşlemcinin içindeki küçük, çok hızlı değişkenler. x64'te <code class="i">rax</code>, <code class="i">rbx</code>, <code class="i">rcx</code>… diye adlandırılır.</li>
+          <li><b>Bellek adresi:</b> Her baytın bir numarası vardır. <code class="i">0x140001008</code> gibi onaltılık yazılır.</li>
+          <li><b>Komut (instruction):</b> İşlemcinin tek adımı — <code class="i">mov</code>, <code class="i">add</code>, <code class="i">call</code>…</li>
+          <li><b>Fonksiyon:</b> Birlikte iş yapan komut dizisi; bir yerden <code class="i">call</code> ile çağrılır, <code class="i">ret</code> ile döner.</li>
+        </ul>
+        <div class="note"><b>Neden onaltılık (hex)?</b> Baytlar 0–255 arası değer alır ve <code class="i">00</code>–<code class="i">FF</code>
+        aralığı tam iki hex hanesine sığar. Bu yüzden adresler ve değerler hep hex yazılır. tlk-hex'te <kbd>H</kbd> ile bir
+        sayıyı ondalığa çevirebilirsin.</div>
+      </div>
+
+      <!-- MODÜL 2 -->
+      <div class="mod" id="m2">
+        <div class="mod-tag">modül 02</div>
+        <h2>Dosya yapısı <span class="lvl b">başlangıç</span></h2>
+        <p>Bir <code class="i">.exe</code> yalnızca koddan ibaret değildir. Windows'un onu belleğe doğru yükleyebilmesi için
+        bir düzeni vardır: <b>PE (Portable Executable)</b> formatı. Linux tarafında bunun karşılığı <b>ELF</b>'tir.</p>
+
+        <h3>Bölümler (sections)</h3>
+        <p>Dosya, işlevine göre bölümlere ayrılır. tlk-hex'te <kbd>Shift</kbd>+<kbd>F7</kbd> ile hepsini görürsün:</p>
+        <table class="tbl">
+          <tr><th>Bölüm</th><th>İçinde ne var</th></tr>
+          <tr><td>.text</td><td>Çalıştırılabilir kod. Fonksiyonlar burada.</td></tr>
+          <tr><td>.rdata</td><td>Salt-okunur veri: string'ler, import tablosu, sabitler.</td></tr>
+          <tr><td>.data</td><td>Yazılabilir global değişkenler.</td></tr>
+          <tr><td>.rsrc</td><td>Kaynaklar: ikonlar, sürüm bilgisi, diyaloglar.</td></tr>
+          <tr><td>.pdata</td><td>x64 istisna/çözülme bilgisi — fonksiyon sınırlarını bulmaya yarar.</td></tr>
+        </table>
+
+        <h3>Önemli noktalar</h3>
+        <ul>
+          <li><b>Giriş noktası (entry point):</b> Program çalışınca ilk çalışan komut. tlk-hex'te <kbd>Ctrl</kbd>+<kbd>E</kbd>.</li>
+          <li><b>Import'lar:</b> Programın başka DLL'lerden ödünç aldığı fonksiyonlar (<code class="i">CreateFileW</code>, <code class="i">send</code>…). Ne yaptığına dair en güçlü ipucu.</li>
+          <li><b>Export'lar:</b> Bir DLL'in dışarıya açtığı fonksiyonlar.</li>
+          <li><b>Image base:</b> Dosyanın belleğe yükleneceği başlangıç adresi (çoğu x64 EXE'de <code class="i">0x140000000</code>).</li>
+        </ul>
+        <div class="note"><b>RVA vs offset:</b> Dosyadaki konum (<i>file offset</i>) ile bellekteki adres (<i>RVA + image base</i>)
+        farklıdır. tlk-hex ikisini de gösterir ve çevirmeyi senin yerine yapar — alt çubukta her ikisini de görürsün.</div>
+      </div>
+
+      <!-- MODÜL 3 -->
+      <div class="mod" id="m3">
+        <div class="mod-tag">modül 03</div>
+        <h2>Assembly okuma <span class="lvl i">orta</span></h2>
+        <p>Korkutucu görünür ama birkaç düzine komut işlerin %90'ını kaplar. Önce register'lar:</p>
+
+        <h3>Register'lar</h3>
+        <table class="tbl">
+          <tr><th>64-bit</th><th>32-bit</th><th>Tipik kullanım</th></tr>
+          <tr><td>rax</td><td>eax</td><td>Dönüş değeri; genel hesap</td></tr>
+          <tr><td>rcx rdx r8 r9</td><td>ecx edx</td><td>Fonksiyona geçen ilk 4 argüman (x64)</td></tr>
+          <tr><td>rbx rsi rdi</td><td>ebx esi edi</td><td>Korunan genel değişkenler</td></tr>
+          <tr><td>rsp</td><td>esp</td><td>Yığın işaretçisi (stack pointer)</td></tr>
+          <tr><td>rbp</td><td>ebp</td><td>Yığın çerçevesi tabanı</td></tr>
+          <tr><td>rip</td><td>eip</td><td>Sıradaki komutun adresi</td></tr>
+        </table>
+        <p>Aynı register'ın küçük parçaları da kullanılır: <code class="i">rax</code> → <code class="i">eax</code> (32) →
+        <code class="i">ax</code> (16) → <code class="i">al</code> (8 bit).</p>
+
+        <h3>En sık komutlar</h3>
+        <table class="tbl">
+          <tr><th>Komut</th><th>Anlamı</th></tr>
+          <tr><td>mov a, b</td><td><code>a = b</code> — değer kopyala</td></tr>
+          <tr><td>lea a, [b]</td><td><code>a = b'nin adresi</code> — adres hesapla (hep bellek okumaz)</td></tr>
+          <tr><td>add / sub</td><td>Topla / çıkar</td></tr>
+          <tr><td>xor a, a</td><td>Register'ı sıfırla (kendisiyle XOR = 0)</td></tr>
+          <tr><td>cmp a, b</td><td>Karşılaştır (<code>a - b</code>) ve bayrakları ayarla</td></tr>
+          <tr><td>test a, a</td><td><code>a</code> sıfır mı diye bakar (çok yaygın)</td></tr>
+          <tr><td>jmp</td><td>Koşulsuz atla</td></tr>
+          <tr><td>jz / je</td><td>Eşitse / sıfırsa atla &nbsp;·&nbsp; jnz/jne: değilse</td></tr>
+          <tr><td>call</td><td>Fonksiyon çağır</td></tr>
+          <tr><td>ret</td><td>Fonksiyondan dön</td></tr>
+          <tr><td>push / pop</td><td>Yığına koy / al</td></tr>
+        </table>
+
+        <h3>Çağrı kuralı (x64 Windows)</h3>
+        <p>Bir fonksiyon çağrılırken argümanlar sırayla <code class="i">rcx, rdx, r8, r9</code> register'larına konur;
+        fazlası yığına gider. Dönüş değeri <code class="i">rax</code>'tedir. Yani şunu gördüğünde:</p>
+        <div class="code"><div class="hdr">.text — bir çağrı</div><pre><span class="m">mov</span>     <span class="r">rcx</span>, <span class="n">1</span>
+<span class="m">lea</span>     <span class="r">rdx</span>, <span class="nm">aMerhaba</span>      <span class="cm">; "merhaba"</span>
+<span class="m">call</span>    <span class="nm">MesajYaz</span>           <span class="cm">; MesajYaz(1, "merhaba")</span>
+<span class="m">mov</span>     <span class="r">ebx</span>, <span class="r">eax</span>           <span class="cm">; dönüş değerini sakla</span></pre></div>
+        <p>…aslında <code class="i">MesajYaz(1, "merhaba")</code> çağrısını okuyorsun demektir.</p>
+
+        <h3>Yığın değişkenleri</h3>
+        <p>Yerel değişkenler yığında tutulur. tlk-hex bunları <code class="i">var_18</code> (yerel) ve <code class="i">arg_8</code>
+        (argüman) gibi otomatik adlandırır; <code class="i">[rsp+88h+var_18]</code> yazısı "bu fonksiyonun bir yerel değişkeni" demektir.
+        Üzerine gel, <kbd>N</kbd> ile anlamlı bir isim verebilirsin.</p>
+      </div>
+
+      <!-- MODÜL 4 -->
+      <div class="mod" id="m4">
+        <div class="mod-tag">modül 04</div>
+        <h2>İlk analiz <span class="lvl i">orta</span></h2>
+        <p>Artık gerçek bir fonksiyon okuyalım. Ana sayfadaki örneği alalım ve satır satır çözelim:</p>
+        <div class="code"><div class="hdr">IDA View-A · ParseConfigFile</div><pre><span class="a">140001008</span> <span class="nm">ParseConfigFile</span> <span class="m">proc near</span>
+<span class="a">140001008</span>   <span class="m">mov</span>     <span class="r">r11</span>, <span class="r">rsp</span>
+<span class="a">14000100B</span>   <span class="m">sub</span>     <span class="r">rsp</span>, <span class="n">88h</span>              <span class="cm">; yığında yer aç</span>
+<span class="a">140001012</span>   <span class="m">mov</span>     <span class="r">rax</span>, <span class="r">cs</span>:<span class="nm">__security_cookie</span>  <span class="cm">; yığın koruması</span>
+<span class="a">140001019</span>   <span class="m">xor</span>     <span class="r">rax</span>, <span class="r">rsp</span>
+<span class="a">14000101C</span>   <span class="m">mov</span>     [<span class="r">rsp</span>+<span class="n">88h</span>+<span class="kw">var_18</span>], <span class="r">rax</span>
+<span class="a">140001053</span>   <span class="m">lea</span>     <span class="r">rcx</span>, <span class="nm">aConfigLoaded</span>    <span class="cm">; "config loaded: %s"</span>
+<span class="a">14000105A</span>   <span class="m">mov</span>     <span class="r">edx</span>, <span class="r">esi</span>
+<span class="a">140001073</span>   <span class="m">call</span>    <span class="nm">LogMessage</span>            <span class="cm">; LogMessage("config loaded: %s", esi)</span>
+<span class="a">140001080</span>   <span class="m">call</span>    <span class="im">cs:__security_check_cookie</span>
+<span class="a">140001085</span>   <span class="m">add</span>     <span class="r">rsp</span>, <span class="n">88h</span>              <span class="cm">; yeri geri ver</span>
+<span class="a">14000108C</span>   <span class="m">retn</span></pre></div>
+
+        <p><b>Ne okuduk?</b></p>
+        <ul>
+          <li><b>Baş kısım</b> (<code class="i">sub rsp</code> + security_cookie): Her derleyici fonksiyonunun standart açılışı. Yığın taşmasına karşı koruma. Mantığı burada değil.</li>
+          <li><b>Orta kısım</b>: <code class="i">lea rcx, aConfigLoaded</code> bir metnin adresini alıyor, <code class="i">call LogMessage</code> onu yazdırıyor. Demek ki bu fonksiyon bir şeyi <b>logluyor</b>.</li>
+          <li><b>Son kısım</b> (<code class="i">security_check</code> + <code class="i">add rsp</code> + <code class="i">retn</code>): Standart kapanış.</li>
+        </ul>
+        <p>Yani gürültüyü eleyince fonksiyonun özü tek satır: <i>"config loaded" mesajını logla</i>. Gerçek analizin yarısı,
+        bu standart kalıpları tanıyıp <b>önemli olana odaklanmaktır</b>.</p>
+
+        <div class="note"><b>tlk-hex ipucu:</b> Bir string'in nerede kullanıldığını merak ediyorsan üzerine gel, <kbd>X</kbd>'e
+        bas — onu kullanan tüm yerler listelenir. Tersi de geçerli: bir <code class="i">call</code> hedefine çift tıkla,
+        o fonksiyonun içine girersin.</div>
+
+        <h3>Nereden başlamalı?</h3>
+        <ul>
+          <li><b>String'ler</b> (<kbd>Shift</kbd>+<kbd>F12</kbd>): "invalid password", "connecting to..." gibi metinler programın niyetini ele verir. İlginç bir string'e <kbd>X</kbd> ile onu kullanan koda git.</li>
+          <li><b>Import'lar</b>: <code class="i">socket</code>/<code class="i">connect</code> görürsen ağ var; <code class="i">CryptEncrypt</code> görürsen şifreleme var.</li>
+          <li><b>Giriş noktası</b> (<kbd>Ctrl</kbd>+<kbd>E</kbd>): programın en tepesinden akışı izle.</li>
+          <li><b>Bulgular sekmesi</b>: tlk-hex şüpheli/ilginç noktaları zaten özetler — hızlı bir harita verir.</li>
+        </ul>
+      </div>
+
+      <!-- MODÜL 5 -->
+      <div class="mod" id="m5">
+        <div class="mod-tag">modül 05</div>
+        <h2>Akışı çıkar <span class="lvl i">orta</span></h2>
+        <p><kbd>Space</kbd> ile grafiğe geç. Bloklar arası oklar programın mantığıdır. Birkaç kalıbı tanı:</p>
+
+        <h3>if / else</h3>
+        <p>Bir <code class="i">cmp</code> + koşullu atlama, bir dallanmadır. Grafikte iki ok çıkar:
+        <b style="color:var(--num)">yeşil</b> = koşul doğru, <b style="color:var(--red)">kırmızı</b> = yanlış.</p>
+        <div class="code"><div class="hdr">bir karar</div><pre><span class="m">cmp</span>     <span class="r">eax</span>, <span class="n">0</span>
+<span class="m">jz</span>      <span class="nm">loc_hata</span>       <span class="cm">; eax == 0 ise hataya atla</span>
+<span class="cm">; ... buraya düşerse eax != 0 (başarı yolu)</span></pre></div>
+        <p>C diliyle: <code class="i">if (eax == 0) goto hata;</code></p>
+
+        <h3>döngü (loop)</h3>
+        <p>Grafikte <b>yukarı doğru dönen</b> bir ok gördüğünde orası bir döngüdür: blok, kendinden önceki bir bloğa geri atlıyordur.
+        Genelde bir sayaç (<code class="i">inc</code>/<code class="i">dec</code>) ve bir <code class="i">cmp</code> ile biter.</p>
+
+        <h3>switch</h3>
+        <p>Bir değere göre çok yöne dallanma. tlk-hex atlama tablolarını otomatik çözer ve
+        <code class="i">jumptable ... case 3</code> gibi yorumlar ekler — hangi değerin nereye gittiğini doğrudan okursun.</p>
+
+        <div class="note"><b>Kestirme:</b> Blok block okumak yerine <kbd>F5</kbd>'e bas. tlk-hex akışı senin için
+        <code class="i">if</code>/<code class="i">goto</code>'lu C benzeri bir özete çevirir. Kesin değildir ama mantığı hızlı kavratır.</div>
+      </div>
+
+      <!-- MODÜL 6 -->
+      <div class="mod" id="m6">
+        <div class="mod-tag">modül 06</div>
+        <h2>Pratik <span class="lvl a">ileri</span></h2>
+        <p>Okumak öğretmez; çözmek öğretir. Başlamak için güvenli ve meşru yollar:</p>
+        <ul>
+          <li><b>Kendi programını derle, sonra analiz et.</b> C/C++ ile küçük bir program yaz, tlk-hex'te aç. Kaynağı bildiğin için assembly karşılığını birebir görürsün — en hızlı öğrenme yöntemi budur.</li>
+          <li><b>CTF (Capture The Flag):</b> Güvenlik yarışmalarının "reversing" kategorileri tam bu iş için tasarlanmıştır; çözmen için yapılmış dosyalardır.</li>
+          <li><b>Crackme'ler:</b> Yazarının bilerek "beni çöz" diye paylaştığı alıştırma programları. Burada amaç bir mantığı <i>anlamaktır</i> — başkasının ticari yazılımını kırmak değil.</li>
+          <li><b>Zararlı yazılım analizi:</b> İleri seviye. Örnekleri izole bir ortamda, yalnızca statik olarak incele (tlk-hex çalıştırmaz, bu yüzden okuma güvenlidir).</li>
+        </ul>
+
+        <div class="note warn"><b>Sınır nerede?</b> Tersine mühendislik; öğrenmek, kendi kodunu incelemek, güvenlik araştırması
+        ve izinli testler için meşrudur. Satın almadığın bir yazılımın lisans/kopya korumasını kaldırmak (crack) ya da
+        başkasının hakkını ihlal etmek bunun dışındadır. Yetkin olduğun dosyalarda çalış.</div>
+
+        <h3>Bir çalışma düzeni</h3>
+        <ul>
+          <li>Önce <b>genel bak</b>: string'ler, import'lar, bulgular. Program kabaca ne yapıyor?</li>
+          <li><b>İlginç bir ipucundan</b> içeri gir (<kbd>X</kbd> ile string/import'tan koda).</li>
+          <li>Fonksiyonu <b>grafikte</b> oku, standart kalıpları ele; <kbd>F5</kbd> ile doğrula.</li>
+          <li><b>İsim ver</b> (<kbd>N</kbd>) ve <b>not düş</b> (<kbd>;</kbd>). Anladıkça dosya okunur hale gelir.</li>
+          <li><kbd>Ctrl</kbd>+<kbd>W</kbd> ile <b>kaydet</b>; yarın kaldığın yerden devam et.</li>
+        </ul>
+      </div>
+
+      <!-- SÖZLÜK -->
+      <div class="mod" id="sozluk">
+        <div class="mod-tag">başvuru</div>
+        <h2>Sözlük</h2>
+        <dl class="gloss">
+          <dt>Disassembler</dt><dd>Makine kodu baytlarını okunur assembly'ye çeviren araç. tlk-hex bir disassembler'dır.</dd>
+          <dt>Decompiler</dt><dd>Assembly'yi daha üst seviye (C benzeri) koda çevirmeye çalışan araç. tlk-hex'in <kbd>F5</kbd>'i basit bir decompiler gibidir.</dd>
+          <dt>Assembly</dt><dd>İşlemci komutlarının insan okuyabilir hali — <code>mov</code>, <code>call</code>, <code>jmp</code>…</dd>
+          <dt>Register</dt><dd>İşlemci içindeki çok hızlı küçük depolar: <code>rax</code>, <code>rcx</code>…</dd>
+          <dt>Opcode</dt><dd>Bir komutu temsil eden ham bayt(lar). <code>C3</code> = <code>ret</code> gibi.</dd>
+          <dt>RVA</dt><dd>Relative Virtual Address — image base'e göre göreli bellek adresi.</dd>
+          <dt>Entry point</dt><dd>Program çalışınca ilk çalışan komutun adresi.</dd>
+          <dt>Import</dt><dd>Programın başka bir DLL'den kullandığı dış fonksiyon.</dd>
+          <dt>Xref (cross-reference)</dt><dd>Bir adrese/isme yapılan referanslar — "burası nereden çağrılıyor/kullanılıyor?"</dd>
+          <dt>Stack (yığın)</dt><dd>Fonksiyonların yerel değişken ve dönüş adresi için kullandığı LIFO bellek alanı.</dd>
+          <dt>Calling convention</dt><dd>Argümanların hangi register/yığın sırasıyla geçtiğini belirleyen kural.</dd>
+          <dt>Prologue / Epilogue</dt><dd>Fonksiyonun standart açılış/kapanış kodu (yığın ayarı, koruma).</dd>
+          <dt>Basic block</dt><dd>Dallanmasız, baştan sona akan komut dizisi; grafiğin bir kutusu.</dd>
+          <dt>PDB / Sembol</dt><dd>Fonksiyon isimlerini içeren yardımcı dosya. Yüklenince <code>sub_X</code> gerçek adına döner.</dd>
+          <dt>Patch (yama)</dt><dd>Dosyadaki baytları değiştirmek. tlk-hex'te <kbd>F2</kbd> ile; orijinal bozulmadan.</dd>
+          <dt>Packer</dt><dd>Kodu sıkıştırıp/şifreleyip çalışınca açan koruma. Yüksek entropi olarak görünür.</dd>
+        </dl>
+      </div>
+
+      <div class="btns mt">
+        <a class="btn solid" href="kullanim.html">kullanım rehberi →</a>
+        <a class="btn line" href="kisayollar.html">kısayollar</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interaktif disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">yalnızca yetkili analiz · eğitim · araştırma</div>
+  </div>
+</footer>
+
+</body>
+</html>
