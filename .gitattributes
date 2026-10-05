@@ -1,0 +1,18 @@
+# Normalize line endings
+* text=auto eol=lf
+*.cs text eol=crlf
+*.csproj text eol=crlf
+*.xaml text eol=crlf
+*.bat text eol=crlf
+*.sln text eol=crlf
+
+# Binary assets
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+
+# Keep the website out of the repo's language stats
+docs/** linguist-documentation
+*.html linguist-detectable=false

@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    ignore:
+      # AvalonDock 5.x .NET Framework hedefli; 4.72.1'de kalıyoruz
+      - dependency-name: "Dirkster.AvalonDock*"
+        versions: [">=5.0.0"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels: [dependencies, ci]

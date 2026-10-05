@@ -1,0 +1,19 @@
+# Derleme çıktıları
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Geçici
+*.tmp
+*.log
+
+# Not: uygulama kullanıcı verilerini %APPDATA%\tlk-hex altında tutar
+# (ayarlar, indirilen semboller, veritabanı, kilitlenme kaydı) — bunlar depoya girmez.
+
+# Crackme derleme çıktıları (release varlıkları)
+crackmes/bin/
+crackmes/*.zip
+__pycache__/
+*.pyc
