@@ -26,8 +26,8 @@ flow — all in one window, in seconds.
 > suitable for examining malicious samples too.
 
 <div align="center">
-<img src="docs/img/graph.png" width="90%" alt="tlk-hex control-flow graph view">
-<br><sub>Control-flow graph · symbols loaded</sub>
+<img src="docs/img/demo.gif" width="92%" alt="tlk-hex — a quick tour">
+<br><sub>Welcome · control-flow graph · pseudocode · search · hex · strings</sub>
 </div>
 
 ## ✨ Features
@@ -69,8 +69,13 @@ dotnet build -c Release
 Output: `bin\Release\net10.0-windows\tlk-hex.exe` — or just run `run.bat`.
 
 Then drag-and-drop a file; tlk-hex handles the rest. Press `F1` in-app for a quick guide, or see the
-**[tutorials](https://talkdedsec.github.io/tlk-hex/learn.html)**. Prebuilt binaries are published on the
+**[tutorials](https://talkdedsec.github.io/tlk-hex/learn.html)**.
+
+Prebuilt, self-contained Windows binaries (no .NET install needed) are on the
 [Releases](https://github.com/Talkdedsec/tlk-hex/releases) page.
+
+> The downloaded `.exe` is not code-signed, so Windows SmartScreen may show a warning the first time.
+> Choose **More info → Run anyway**, or build from source yourself.
 
 ## ⌨️ Common shortcuts
 

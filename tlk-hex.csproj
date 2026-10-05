@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Alt klasörler ana derlemeye girmesin -->
+    <Compile Remove="tests\**\*.cs" />
+    <Compile Remove="docs\**\*.cs" />
+    <Compile Remove="publish\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="resources\app.ico" />
     <Resource Include="resources\bg-default.png" />
     <Resource Include="resources\eye.png" />
