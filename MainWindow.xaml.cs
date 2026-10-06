@@ -386,6 +386,7 @@ public partial class MainWindow : Window
         Add(file, "Veritabanını sıfırla ve yeniden analiz et...", "", ResetDb);
         Sep(file);
         Add(file, "Başka dosyayla karşılaştır... (BinDiff)", "", CompareWith);
+        Add(file, "Kütüphane imzası uygula (.sig)...", "", ApplySignatures);
         Sep(file);
         var produce = new MenuItem { Header = "Dosya üret" };
         file.Items.Add(produce);
@@ -394,6 +395,7 @@ public partial class MainWindow : Window
         Add(produce, "LST dosyası oluştur...", "", () => ExportListing(true));
         Add(produce, "DIF dosyası oluştur...", "", ExportDif);
         Add(produce, "Fonksiyonu C (pseudocode) olarak kaydet...", "", ExportPseudo);
+        Add(produce, "Kütüphane imzası (.sig) üret...", "", GenerateSignatures);
         Sep(file);
         Add(file, "Yamaları dosyaya uygula...", "", ApplyPatches);
         Sep(file);

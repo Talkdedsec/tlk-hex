@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Xunit;
 using tlk_hex.Core;
 
@@ -155,6 +157,45 @@ public class BinDiffTests
         var b = new[] { F(100, "sub_2000", 12, 0x55, true, "send", "recv") };
         var s = BinDiff.Summarize(BinDiff.Compare(a, b));
         Assert.Equal(1, s.Identical);
+    }
+}
+
+public class FlirtTests
+{
+    private static Signature Sig(string name, byte[] pat, byte[] mask)
+        => new() { Name = name, Pattern = pat, Mask = mask };
+
+    [Fact]
+    public void Matches_respects_wildcards()
+    {
+        var s = Sig("f", new byte[] { 0x55, 0x8B, 0xEC, 0x00 }, new byte[] { 0xFF, 0xFF, 0xFF, 0x00 });
+        Assert.True(s.Matches(new byte[] { 0x55, 0x8B, 0xEC, 0x99 }));   // son bayt joker
+        Assert.True(s.Matches(new byte[] { 0x55, 0x8B, 0xEC, 0x11, 0x22 })); // daha uzun pencere ok
+        Assert.False(s.Matches(new byte[] { 0x55, 0x8B, 0xED, 0x00 }));  // sabit bayt uymuyor
+        Assert.False(s.Matches(new byte[] { 0x55, 0x8B }));              // pencere kisa
+    }
+
+    [Fact]
+    public void Save_load_roundtrip_preserves_signatures()
+    {
+        var sigs = new List<Signature>
+        {
+            Sig("alpha", new byte[] { 0x48, 0x89, 0x5C, 0x24 }, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }),
+            Sig("beta",  new byte[] { 0xE8, 0x00, 0x00, 0x00, 0x00 }, new byte[] { 0xFF, 0x00, 0x00, 0x00, 0x00 }),
+        };
+        string path = Path.Combine(Path.GetTempPath(), "tlkhex_test_" + Guid.NewGuid().ToString("N") + ".sig");
+        try
+        {
+            Flirt.Save(path, sigs);
+            var back = Flirt.Load(path);
+            Assert.Equal(2, back.Count);
+            Assert.Equal("alpha", back[0].Name);
+            Assert.Equal(sigs[1].Pattern, back[1].Pattern);
+            Assert.Equal(sigs[1].Mask, back[1].Mask);
+            Assert.Equal(4, back[0].Fixed);   // alpha: 4 sabit bayt
+            Assert.Equal(1, back[1].Fixed);   // beta: 1 sabit (E8), kalan joker
+        }
+        finally { if (File.Exists(path)) File.Delete(path); }
     }
 }
 
