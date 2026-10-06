@@ -396,6 +396,7 @@ public partial class MainWindow : Window
         Add(produce, "DIF dosyası oluştur...", "", ExportDif);
         Add(produce, "Fonksiyonu C (pseudocode) olarak kaydet...", "", ExportPseudo);
         Add(produce, "Kütüphane imzası (.sig) üret...", "", GenerateSignatures);
+        Add(produce, "Analiz raporu (HTML) oluştur...", "", ExportReport);
         Sep(file);
         Add(file, "Yamaları dosyaya uygula...", "", ApplyPatches);
         Sep(file);

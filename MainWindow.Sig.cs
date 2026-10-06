@@ -33,6 +33,29 @@ public partial class MainWindow
         catch (Exception ex) { Dialogs.Info(this, "Hata", "İmza kaydedilemedi:\n" + ex.Message); }
     }
 
+    private void ExportReport()
+    {
+        if (_s == null) return;
+        _result ??= _s.ToResult();
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Analiz raporunu kaydet",
+            Filter = "HTML rapor (*.html)|*.html|Tüm dosyalar (*.*)|*.*",
+            FileName = Path.GetFileNameWithoutExtension(_s.Db.FilePath) + "-rapor.html",
+        };
+        if (dlg.ShowDialog(this) != true) return;
+        try
+        {
+            Report.Save(dlg.FileName, _result);
+            _out.Log($"Rapor oluşturuldu → {Path.GetFileName(dlg.FileName)}");
+            SetStatus("Rapor kaydedildi.");
+            if (Dialogs.Confirm(this, "Rapor", "Rapor kaydedildi. Tarayıcıda açılsın mı?"))
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(dlg.FileName) { UseShellExecute = true }); }
+                catch { }
+        }
+        catch (Exception ex) { Dialogs.Info(this, "Hata", "Rapor oluşturulamadı:\n" + ex.Message); }
+    }
+
     private void ApplySignatures()
     {
         if (_s == null) return;
