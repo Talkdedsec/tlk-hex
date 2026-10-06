@@ -80,6 +80,14 @@ Prebuilt Windows binaries are on the [Releases](https://github.com/Talkdedsec/tl
 > The downloaded `.exe` is not code-signed, so Windows SmartScreen may warn the first time.
 > Choose **More info → Run anyway**, or build from source yourself.
 
+Or install with a package manager:
+
+```powershell
+scoop install https://raw.githubusercontent.com/Talkdedsec/tlk-hex/main/packaging/scoop/tlk-hex.json
+# winget (once accepted into winget-pkgs):
+winget install Talkdedsec.tlk-hex
+```
+
 ## ⌨️ Common shortcuts
 
 | Key | Action | | Key | Action |
@@ -91,6 +99,7 @@ Prebuilt Windows binaries are on the [Releases](https://github.com/Talkdedsec/tl
 | `Ctrl`+`F` | Go / search box | | `Ctrl`+`W` | Save work |
 
 > Full list: `F1` in-app or the [shortcuts page](https://talkdedsec.github.io/tlk-hex/shortcuts.html).
+> One-page [cheat sheet](https://talkdedsec.github.io/tlk-hex/cheatsheet.html) (shortcuts, patch bytes, asm patterns, triage).
 
 ## 🏷️ Symbols & AI
 

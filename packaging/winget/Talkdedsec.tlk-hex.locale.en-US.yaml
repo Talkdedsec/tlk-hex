@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: Talkdedsec.tlk-hex
+PackageVersion: 0.1.3
+PackageLocale: en-US
+Publisher: Talkdedsec
+PublisherUrl: https://github.com/Talkdedsec
+PublisherSupportUrl: https://github.com/Talkdedsec/tlk-hex/issues
+PackageName: tlk-hex
+PackageUrl: https://github.com/Talkdedsec/tlk-hex
+License: MIT with Commons Clause
+LicenseUrl: https://github.com/Talkdedsec/tlk-hex/blob/main/LICENSE
+ShortDescription: Interactive disassembler for Windows - IDA-style text and graph views, PDB symbols, hex patching.
+Description: >-
+  tlk-hex is a free, source-available interactive disassembler for Windows. It loads PE, ELF and raw
+  binaries, disassembles x86/x64 with recursive traversal, and offers IDA-style text and control-flow
+  graph views, cross-references, stack-variable analysis, C-like pseudocode, a powerful search panel,
+  Microsoft PDB symbol download, and in-place hex patching. For authorized analysis, education and research.
+Moniker: tlk-hex
+Tags:
+  - disassembler
+  - reverse-engineering
+  - pe
+  - malware-analysis
+  - security
+  - x86
+  - x64
+ReleaseNotesUrl: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.3
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

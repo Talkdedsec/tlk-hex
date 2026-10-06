@@ -62,6 +62,7 @@ public sealed class AutoAnalysis
         FinalizeFunctions();
         AlignPass();
         BuildStrings();
+        AnnotateApiCalls();
         log($"  {_db.Funcs.Count:N0} fonksiyon, {_db.XFrom.Count:N0} xref kaynağı, {_db.Strings.Count:N0} string bulundu.");
     }
 
@@ -77,6 +78,28 @@ public sealed class AutoAnalysis
                 _db.SetItem(s, o, _db.Ptr, ItemKind.Extern);
             else
                 _db.SetItem(s, o, _db.Ptr, _db.Ptr == 8 ? ItemKind.Qword : ItemKind.Dword, true);
+        }
+    }
+
+    // Bilinen Windows API cagrilarina prototip yorumu dusur (CreateFileW(lpFileName, ...))
+    private void AnnotateApiCalls()
+    {
+        foreach (var (from, list) in _db.XFrom)
+        {
+            foreach (var x in list)
+            {
+                if (x.Type != XrefType.Call && x.Type != XrefType.Jump) continue;
+                var name = _db.NameAt(x.To);
+                if (string.IsNullOrEmpty(name)) continue;
+                // thunk / IAT onek temizligi
+                string n = name!;
+                if (n.StartsWith("j_")) n = n[2..];
+                else if (n.StartsWith("__imp_")) n = n[6..];
+                else if (n.StartsWith("_imp_")) n = n[5..];
+                if (!ApiHints.TryGet(n, out var proto)) continue;
+                _db.AutoComments.TryAdd(from, proto);
+                break; // satir basina tek yorum yeter
+            }
         }
     }
 

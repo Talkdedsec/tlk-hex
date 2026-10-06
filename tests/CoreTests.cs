@@ -79,6 +79,35 @@ public class SearchParsingTests
         => Assert.Null(SearchEngine.ParsePattern("not hex!"));
 }
 
+public class ApiHintsTests
+{
+    [Theory]
+    [InlineData("CreateFileW", "lpFileName")]
+    [InlineData("CreateFileA", "lpFileName")]
+    [InlineData("VirtualAllocEx", "flProtect")]
+    [InlineData("__imp_WriteProcessMemory", "lpBaseAddress")]
+    [InlineData("j_strcmp", "str2")]
+    public void TryGet_resolves_known_apis(string name, string mustContain)
+    {
+        // j_ ve __imp_ onekleri cagri tarafinda temizlenir; burada net isim veriyoruz
+        string clean = name.StartsWith("j_") ? name[2..]
+            : name.StartsWith("__imp_") ? name[6..] : name;
+        Assert.True(ApiHints.TryGet(clean, out var proto));
+        Assert.Contains(mustContain, proto);
+    }
+
+    [Fact]
+    public void TryGet_rejects_unknown()
+        => Assert.False(ApiHints.TryGet("SomeRandomFunc123", out _));
+
+    [Fact]
+    public void TryGet_formats_prototype()
+    {
+        Assert.True(ApiHints.TryGet("memcpy", out var p));
+        Assert.Equal("memcpy(dest, src, count)", p);
+    }
+}
+
 public class LoaderDetectTests
 {
     [Fact]

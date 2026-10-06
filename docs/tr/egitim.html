@@ -29,6 +29,7 @@
       <a href="kullanim.html">kullanım</a>
       <a href="egitim.html" class="on">eğitim</a>
       <a href="kisayollar.html">kısayollar</a>
+      <a href="kopya-kagidi.html">kopya kağıdı</a>
       <a href="index.html#sss">sss</a>
     <span class="lang"><a href="egitim.html" class="on">TR</a><a href="../learn.html">EN</a></span>
     </nav>
@@ -52,6 +53,7 @@
       <a href="#m6"><div class="pn">modül 06</div><h4>Pratik</h4><p>Nerede, neyle çalışılır; meşru alıştırma kaynakları.</p></a>
       <a href="#m7"><div class="pn">modül 07</div><h4>Baştan sona bir EXE</h4><p>Her şeyi tek gerçek analiz akışında birleştir: string → xref → karar → doğrula.</p></a>
       <a href="#m8"><div class="pn">modül 08</div><h4>Yama (patching)</h4><p>Anahtarı bulmak yerine davranışı değiştir: bir dalı çevir, kontrolü atla.</p></a>
+      <a href="#m9"><div class="pn">modül 09</div><h4>Paketleyiciler &amp; triyaj</h4><p>Kod gizliyse: entropi, paketleyici imzaları, imphash ve seyrek import.</p></a>
     </div>
   </div>
 </section>
@@ -70,6 +72,7 @@
       <a href="#m6"><span class="mn">06</span>Pratik</a>
       <a href="#m7"><span class="mn">07</span>Baştan sona bir EXE</a>
       <a href="#m8"><span class="mn">08</span>Yama (patching)</a>
+      <a href="#m9"><span class="mn">09</span>Paketleyiciler &amp; triyaj</a>
       <a href="#sozluk"><span class="mn">··</span>Sözlük</a>
     </aside>
 
@@ -597,6 +600,76 @@ runtime unpacking (çalışırken açılan paketleyiciler)</pre></div>
         birleşir.</p>
       </div>
 
+      <div class="mod" id="m9">
+        <div class="mod-tag">modül 09</div>
+        <h2>Paketleyiciler &amp; triyaj: kod gizliyse <span class="lvl i">orta</span></h2>
+        <p>Dosyayı açtın; disassembly çok küçük, import tablosunda beş girdi var ve stringler anlamsız mı?
+        Büyük ihtimalle <b>paketlenmiş</b> ya da <b>korumalı</b> bir dosyaya bakıyorsun: gerçek kod sıkıştırılmış/şifrelenmiş
+        ve ancak çalışma anında bellekte açılıyor. Statik olarak okumadan önce bunu fark etmen gerekir — ve tlk-hex
+        <b>Bulgular</b> panelinde sana dört hızlı işaret verir.</p>
+
+        <h3>1. Entropi — bir bölüm ne kadar rastgele?</h3>
+        <p>Entropi, rastgeleliği <b>0–8</b> ölçeğinde (bayt başına bit) ölçer. Normal kod <b>6–6.8</b> civarındadır.
+        Sıkıştırılmış veya şifreli veri <b>7.5–8</b>'e doğru çıkar, çünkü paketli baytlar gürültü gibi görünür. tlk-hex
+        <b>Segments</b> görünümünde her bölüm için entropi değeri gösterir ve kaynak olmayan bir bölüm
+        <code class="i">7.5</code> üstüne çıkınca bulgu üretir.</p>
+        <table class="tbl">
+          <tr><th>Entropi</th><th>Genelde şu demektir</th></tr>
+          <tr><td>&lt; 6.0</td><td>Metin, tablolar, sıkıştırılmamış veri</td></tr>
+          <tr><td>6.0 – 7.0</td><td>Sıradan makine kodu</td></tr>
+          <tr><td>&gt; 7.5</td><td>Sıkıştırılmış / şifreli — muhtemelen paketli</td></tr>
+        </table>
+        <div class="note">Tek başına yüksek entropili bir <code class="i">.rsrc</code> normaldir (PNG ya da zip tutabilir).
+        Asıl uyarı, <b>kod</b> bölümündeki yüksek entropidir.</div>
+
+        <h3>2. Paketleyici imzaları — bölüm adları ele verir</h3>
+        <p>Birçok paketleyici parmak izini <b>bölüm adlarında</b> bırakır. tlk-hex gömülü bir listeyle eşleştirir ve aracı
+        senin için adlandırır:</p>
+        <table class="tbl">
+          <tr><th>Bölüm</th><th>Paketleyici</th></tr>
+          <tr><td><code>UPX0</code> / <code>UPX1</code></td><td>UPX (ücretsiz, kolay açılır)</td></tr>
+          <tr><td><code>.aspack</code> / <code>.adata</code></td><td>ASPack</td></tr>
+          <tr><td><code>.vmp0</code> / <code>.vmp1</code></td><td>VMProtect (sanallaştırma)</td></tr>
+          <tr><td><code>.themida</code> / <code>winlice</code></td><td>Themida / WinLicense</td></tr>
+          <tr><td><code>.petite</code>, <code>.mpress</code>, <code>.fsg</code></td><td>Petite / MPRESS / FSG</td></tr>
+        </table>
+        <p>UPX en kolay olanı: <code class="i">upx -d ornek.exe</code> onu açar, sonucu normal şekilde analiz edersin.
+        VMProtect/Themida ise bambaşka bir lig — kodu sanallaştırır ve yalnızca-statik çalışmanın kapsamı dışındadır.</p>
+
+        <h3>3. Seyrek import — yetenek eksik</h3>
+        <p>Gerçek bir arayüz programı <b>onlarca–yüzlerce</b> fonksiyon import eder. DLL olmayan bir dosya yalnızca birkaç
+        tane import ediyorsa ve ayrıca <code class="i">LoadLibrary</code> + <code class="i">GetProcAddress</code> görüyorsan,
+        program gerçek API'sini import tablosundan gizlemek için çalışma anında çözüyordur. tlk-hex hem <b>seyrek import
+        tablosunu</b> hem de <b>dinamik çözüm</b> desenini işaretler.</p>
+
+        <h3>4. imphash — import tablosunun parmak izi</h3>
+        <p><b>imphash</b>, import tablosu üzerinde alınan bir MD5'tir (her <code class="i">dll.fonksiyon</code>, sırasıyla).
+        Aynı kaynaktan/araçtan derlenen iki örnek, baytları farklı olsa bile genelde aynı imphash'i paylaşır — yani bir
+        <b>zararlı yazılım ailesini kümelemek</b> ya da kardeş örnekleri bulmak için ucuz bir yoldur. tlk-hex bunu hesaplar
+        ve Bulgular'da gösterir; ilgili örnekleri bulmak için bir tehdit-istihbaratı aramasına yapıştırabilirsin.</p>
+
+        <h3>Geriye kalanı okumak</h3>
+        <p>Paketli bir dosya bile biraz sızdırır. Açmadan önce şunlara göz at:</p>
+        <ul>
+          <li>Mevcut <b>birkaç</b> import — <code class="i">VirtualAlloc</code> + <code class="i">VirtualProtect</code>
+              klasik "bellek ayır, içine aç, çalıştırılabilir yap" üçlüsüdür.</li>
+          <li><b>Giriş noktası</b> — paketleyici stub'ı kısadır ve yeni yazılmış belleğe bir <code class="i">jmp</code> ile
+              biter (orijinal giriş noktasına / OEP'ye "tail jump").</li>
+          <li>API çağrı yorumları — tlk-hex bilinen çağrıları parametreleriyle açıklar (ör.
+              <code class="i">VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect)</code>) ki açma stub'ı net okunsun.</li>
+        </ul>
+
+        <h3>Alıştırma</h3>
+        <p>Sahibi olduğun zararsız bir programı al, bir kopyasını UPX ile paketle ve <b>ikisini de</b> tlk-hex'te aç:</p>
+        <ol style="color:var(--dim);font-size:15.5px;line-height:1.9">
+          <li><b>Segments</b> entropisini karşılaştır — paketli kopyada kod bölümünün 7.5 üstüne çıkışını izle.</li>
+          <li><b>UPX</b> paketleyici bulgusunu ve seyrek import tablosunu doğrula.</li>
+          <li><code class="i">upx -d</code> çalıştır, yeniden aç ve import'ların ile stringlerin geri geldiğini gör.</li>
+        </ol>
+        <div class="note warn">Yalnızca sahibi olduğun ya da analiz etmeye yetkili olduğun yazılımı paketle/aç. Satın almadığın
+        yazılımın korumasını kırmaya asla çalışma.</div>
+      </div>
+
       <div class="mod" id="sozluk">
         <div class="mod-tag">başvuru</div>
         <h2>Sözlük</h2>
@@ -617,6 +690,8 @@ runtime unpacking (çalışırken açılan paketleyiciler)</pre></div>
           <dt>PDB / Sembol</dt><dd>Fonksiyon isimlerini içeren yardımcı dosya. Yüklenince <code>sub_X</code> gerçek adına döner.</dd>
           <dt>Patch (yama)</dt><dd>Dosyadaki baytları değiştirmek. tlk-hex'te <kbd>F2</kbd> ile; orijinal bozulmadan.</dd>
           <dt>Packer</dt><dd>Kodu sıkıştırıp/şifreleyip çalışınca açan koruma. Yüksek entropi olarak görünür.</dd>
+          <dt>Entropi</dt><dd>0–8 arası rastgelelik ölçüsü. Kod bölümünde &gt; 7.5 genelde paketli/şifreli demektir.</dd>
+          <dt>imphash</dt><dd>Import tablosunun MD5 parmak izi; aynı araç/aileden örnekler arasında paylaşılır.</dd>
         </dl>
       </div>
 

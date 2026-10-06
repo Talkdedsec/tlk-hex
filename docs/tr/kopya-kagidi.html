@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>talkdedsec</title>
+<meta name="description" content="tlk-hex kopya kağıdı: kısayollar, yama baytları, assembly desenleri, çağrı kuralları ve triyaj işaretleri tek sayfada.">
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../img/icon-256.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tlk-hex">
+<meta property="og:title" content="Kopya kağıdı — tlk-hex">
+<meta property="og:description" content="Tek sayfa başvuru: kısayollar, yama baytları, assembly desenleri, çağrı kuralları ve triyaj işaretleri.">
+<meta property="og:image" content="https://talkdedsec.github.io/tlk-hex/img/social.png">
+<meta property="og:url" content="https://talkdedsec.github.io/tlk-hex/tr/kopya-kagidi.html">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kopya kağıdı — tlk-hex">
+<meta name="twitter:description" content="Tek sayfa başvuru: kısayollar, yama baytları, assembly desenleri, çağrı kuralları ve triyaj işaretleri.">
+<meta name="twitter:image" content="https://talkdedsec.github.io/tlk-hex/img/social.png">
+<style>
+  .sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;margin-top:6px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--bg-2)}
+  .card h3{margin:0 0 10px;font-size:15px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .card h3 .num{font-family:var(--mono);font-size:12px;color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+  .card .tbl{margin:0}
+  .card .tbl td,.card .tbl th{padding:5px 8px;font-size:13px}
+  .card .code{margin:8px 0 0}
+  .print{margin-left:auto;font-family:var(--mono);font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:7px 14px;cursor:pointer}
+  .print:hover{border-color:var(--acc);color:var(--acc)}
+  @media print{
+    header.top,footer,.hero .btns,.print,.note.warn{display:none!important}
+    body{background:#fff;color:#111}
+    .card{break-inside:avoid;border-color:#bbb;background:#fff}
+    a{color:#111!important;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="../img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html">genel</a>
+      <a href="kullanim.html">kullanım</a>
+      <a href="egitim.html">eğitim</a>
+      <a href="kisayollar.html">kısayollar</a>
+      <a href="kopya-kagidi.html" class="on">kopya kağıdı</a>
+      <a href="index.html#sss">sss</a>
+    <span class="lang"><a href="kopya-kagidi.html" class="on">TR</a><a href="../cheatsheet.html">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding-bottom:16px">
+  <div class="wrap">
+    <span class="eyebrow">tek sayfa başvuru</span>
+    <h1 style="font-size:clamp(32px,5vw,48px)">Kopya <em>kağıdı</em></h1>
+    <p class="lead" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      Analiz sırasında elinin altında olması gereken her şey, tek sayfada.
+      <button class="print" onclick="window.print()">⎙ yazdır / PDF kaydet</button>
+    </p>
+  </div>
+</section>
+
+<section style="padding-top:10px">
+  <div class="wrap">
+    <div class="sheet">
+
+      <div class="card">
+        <h3><span class="num">01</span> Gezinme</h3>
+        <table class="tbl">
+          <tr><td><kbd>G</kbd></td><td>Adrese / isme git</td></tr>
+          <tr><td><kbd>Enter</kbd> / <kbd>Esc</kbd></td><td>Takip et / geri</td></tr>
+          <tr><td><kbd>Ctrl</kbd><kbd>↵</kbd></td><td>İleri</td></tr>
+          <tr><td><kbd>Ctrl</kbd><kbd>P</kbd></td><td>Fonksiyona atla</td></tr>
+          <tr><td><kbd>X</kbd></td><td>Buraya kim referans veriyor</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>Metin ↔ grafik</td></tr>
+          <tr><td><kbd>F5</kbd></td><td>Sözde kod</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">02</span> Düzenle &amp; işaretle</h3>
+        <table class="tbl">
+          <tr><td><kbd>N</kbd></td><td>Yeniden adlandır</td></tr>
+          <tr><td><kbd>;</kbd> / <kbd>:</kbd></td><td>Yorum / tekrarlı</td></tr>
+          <tr><td><kbd>C</kbd> / <kbd>D</kbd> / <kbd>A</kbd></td><td>Kod / veri / string yap</td></tr>
+          <tr><td><kbd>U</kbd></td><td>Tanımsız yap</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Fonksiyon oluştur</td></tr>
+          <tr><td><kbd>H</kbd> / <kbd>O</kbd></td><td>Hex↔onluk / offset</td></tr>
+          <tr><td><kbd>F2</kbd></td><td>Hex düzenleme modu</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">03</span> Yama baytları</h3>
+        <table class="tbl">
+          <tr><th>İstek</th><th>Yöntem</th><th>Bayt</th></tr>
+          <tr><td>Dalı ters çevir</td><td><code>jz</code>↔<code>jnz</code></td><td><code>74</code>↔<code>75</code></td></tr>
+          <tr><td>Hiç atlama</td><td>NOP yap</td><td><code>90</code></td></tr>
+          <tr><td>Her zaman atla</td><td><code>jcc</code>→<code>jmp</code></td><td><code>→EB</code></td></tr>
+          <tr><td>Dön (return)</td><td><code>ret</code> yaz</td><td><code>C3</code></td></tr>
+          <tr><td>1 döndür</td><td><code>mov eax,1;ret</code></td><td><code>B8 01 00 00 00 C3</code></td></tr>
+          <tr><td>0 döndür</td><td><code>xor eax,eax;ret</code></td><td><code>31 C0 C3</code></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">04</span> Assembly'de akış</h3>
+        <div class="code"><div class="hdr">if (x == 0)</div><pre><span class="m">test</span>  <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">jnz</span>   <span class="nm">else</span>       <span class="cm">; 0 değilse atla</span></pre></div>
+        <div class="code"><div class="hdr">while / for</div><pre><span class="nm">top:</span> <span class="cm">; gövde...</span>
+<span class="m">cmp</span>   <span class="r">ecx</span>, <span class="r">edx</span>
+<span class="m">jl</span>    <span class="nm">top</span>        <span class="cm">; geri-kenar = döngü</span></pre></div>
+        <div class="code"><div class="hdr">switch</div><pre><span class="m">jmp</span>   <span class="r">[rax*8 + tablo]</span></pre></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">05</span> Çağrı kuralları</h3>
+        <table class="tbl">
+          <tr><th>ABI</th><th>Argümanlar</th></tr>
+          <tr><td>x64 (Windows)</td><td><code>rcx</code>, <code>rdx</code>, <code>r8</code>, <code>r9</code>, sonra yığın</td></tr>
+          <tr><td>x64 (System V)</td><td><code>rdi</code>, <code>rsi</code>, <code>rdx</code>, <code>rcx</code>, <code>r8</code>, <code>r9</code></td></tr>
+          <tr><td>x86 cdecl/stdcall</td><td>tümü yığında (sağ→sol)</td></tr>
+          <tr><td>x86 fastcall</td><td><code>ecx</code>, <code>edx</code>, sonra yığın</td></tr>
+          <tr><td>Dönüş değeri</td><td><code>rax</code> / <code>eax</code></td></tr>
+        </table>
+        <div class="note" style="margin-top:8px">x64 çağıranlar <b>32 bayt</b> gölge alan bırakır.</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">06</span> Bilinmesi gereken opcode'lar</h3>
+        <table class="tbl">
+          <tr><td><code>C3</code> / <code>C2</code></td><td><code>ret</code> / <code>ret n</code></td></tr>
+          <tr><td><code>E8</code> / <code>E9</code></td><td><code>call</code> / <code>jmp</code> rel32</td></tr>
+          <tr><td><code>EB</code></td><td>kısa <code>jmp</code></td></tr>
+          <tr><td><code>74</code>/<code>75</code></td><td><code>je</code>/<code>jne</code></td></tr>
+          <tr><td><code>90</code></td><td><code>nop</code></td></tr>
+          <tr><td><code>55</code> <code>8B EC</code></td><td>x86 prologue (<code>push ebp;mov ebp,esp</code>)</td></tr>
+          <tr><td><code>CC</code></td><td><code>int3</code> (kesme noktası / dolgu)</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">07</span> Triyaj işaretleri</h3>
+        <table class="tbl">
+          <tr><th>İşaret</th><th>Anlamı</th></tr>
+          <tr><td>Entropi &gt; 7.5 (kod)</td><td>paketli / şifreli</td></tr>
+          <tr><td><code>UPX0</code>/<code>.vmp</code>/<code>.themida</code></td><td>paketleyici bölüm adı</td></tr>
+          <tr><td>&lt; 12 import + <code>GetProcAddress</code></td><td>çalışma anında çözülen API</td></tr>
+          <tr><td>imphash eşleşmesi</td><td>aynı aile / araç</td></tr>
+          <tr><td>W+X bölüm</td><td>kendini değiştiren kod</td></tr>
+          <tr><td>dijital imza yok</td><td>yayıncı doğrulanmamış</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">08</span> API → yetenek</h3>
+        <table class="tbl">
+          <tr><td><code>VirtualAllocEx</code> + <code>WriteProcessMemory</code> + <code>CreateRemoteThread</code></td><td>process injection</td></tr>
+          <tr><td><code>SetWindowsHookEx</code> / <code>GetAsyncKeyState</code></td><td>tuş kaydı</td></tr>
+          <tr><td><code>IsDebuggerPresent</code> / <code>NtQueryInformationProcess</code></td><td>hata ayıklama karşıtı</td></tr>
+          <tr><td><code>InternetOpen</code> / <code>URLDownloadToFile</code> / <code>socket</code></td><td>ağ / C2</td></tr>
+          <tr><td><code>RegSetValue</code> / <code>CreateService</code></td><td>kalıcılık</td></tr>
+          <tr><td><code>CryptEncrypt</code> + dosya gezme</td><td>olası fidye yazılımı</td></tr>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="note warn mt">Yalnızca yetkili analiz, eğitim ve araştırma içindir. Sadece sahibi olduğun ya da incelemeye
+    izinli olduğun yazılımı yamala/aç.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interactive disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">authorized analysis · education · research only</div>
+  </div>
+</footer>
+
+</body>
+</html>

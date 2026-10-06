@@ -29,6 +29,7 @@
       <a href="usage.html">usage</a>
       <a href="learn.html" class="on">learn</a>
       <a href="shortcuts.html">shortcuts</a>
+      <a href="cheatsheet.html">cheat sheet</a>
       <a href="index.html#faq">faq</a>
       <span class="lang"><a href="tr/egitim.html">TR</a><a href="learn.html" class="on">EN</a></span>
     </nav>
@@ -52,6 +53,7 @@
       <a href="#m6"><div class="pn">module 06</div><h4>Practice</h4><p>Where and how to practise; legitimate exercise sources.</p></a>
       <a href="#m7"><div class="pn">module 07</div><h4>A full EXE, end to end</h4><p>Combine everything in one real workflow: string → xref → decision → verify.</p></a>
       <a href="#m8"><div class="pn">module 08</div><h4>Patching</h4><p>Change behaviour instead of finding the key: flip a branch, skip a check.</p></a>
+      <a href="#m9"><div class="pn">module 09</div><h4>Packers &amp; triage</h4><p>When the code is hidden: entropy, packer signatures, imphash and sparse imports.</p></a>
     </div>
   </div>
 </section>
@@ -69,6 +71,7 @@
       <a href="#m6"><span class="mn">06</span>Practice</a>
       <a href="#m7"><span class="mn">07</span>A full EXE</a>
       <a href="#m8"><span class="mn">08</span>Patching</a>
+      <a href="#m9"><span class="mn">09</span>Packers &amp; triage</a>
       <a href="#glossary"><span class="mn">··</span>Glossary</a>
     </aside>
 
@@ -587,6 +590,75 @@ runtime unpacking (packers that unpack while running)</pre></div>
         release</a>. The other levels fit the workflow in <a class="inl" href="#m7">Module 07</a>.</p>
       </div>
 
+      <div class="mod" id="m9">
+        <div class="mod-tag">module 09</div>
+        <h2>Packers &amp; triage: when the code is hidden <span class="lvl i">intermediate</span></h2>
+        <p>Open a file and the disassembly is tiny, the import table has five entries, and the strings are garbage?
+        You are probably looking at a <b>packed</b> or <b>protected</b> binary: the real code is compressed/encrypted and
+        only unpacks in memory at runtime. Before you can read it statically you need to recognize this — and tlk-hex
+        gives you four quick signals in the <b>Findings</b> panel.</p>
+
+        <h3>1. Entropy — how random is a section?</h3>
+        <p>Entropy measures randomness on a <b>0–8</b> scale (bits per byte). Normal code sits around <b>6–6.8</b>.
+        Compressed or encrypted data pushes toward <b>7.5–8</b>, because packed bytes look like noise. tlk-hex shows an
+        entropy value per section in the <b>Segments</b> view and raises a finding when a non-resource section goes above
+        <code class="i">7.5</code>.</p>
+        <table class="tbl">
+          <tr><th>Entropy</th><th>Usually means</th></tr>
+          <tr><td>&lt; 6.0</td><td>Text, tables, uncompressed data</td></tr>
+          <tr><td>6.0 – 7.0</td><td>Ordinary machine code</td></tr>
+          <tr><td>&gt; 7.5</td><td>Compressed / encrypted — likely packed</td></tr>
+        </table>
+        <div class="note">A high-entropy <code class="i">.rsrc</code> alone is normal (it may hold PNGs or a zip). High
+        entropy in the <b>code</b> section is the red flag.</div>
+
+        <h3>2. Packer signatures — the section names give it away</h3>
+        <p>Many packers leave their fingerprints in the <b>section names</b>. tlk-hex matches a built-in list and names the
+        tool for you:</p>
+        <table class="tbl">
+          <tr><th>Section</th><th>Packer</th></tr>
+          <tr><td><code>UPX0</code> / <code>UPX1</code></td><td>UPX (free, easy to unpack)</td></tr>
+          <tr><td><code>.aspack</code> / <code>.adata</code></td><td>ASPack</td></tr>
+          <tr><td><code>.vmp0</code> / <code>.vmp1</code></td><td>VMProtect (virtualization)</td></tr>
+          <tr><td><code>.themida</code> / <code>winlice</code></td><td>Themida / WinLicense</td></tr>
+          <tr><td><code>.petite</code>, <code>.mpress</code>, <code>.fsg</code></td><td>Petite / MPRESS / FSG</td></tr>
+        </table>
+        <p>UPX is the friendly one: <code class="i">upx -d sample.exe</code> unpacks it and you analyze the result normally.
+        VMProtect/Themida are a different league — they virtualize the code and are out of scope for static-only study.</p>
+
+        <h3>3. Sparse imports — the capability is missing</h3>
+        <p>A real GUI program imports <b>dozens to hundreds</b> of functions. If a non-DLL imports only a handful and you
+        also see <code class="i">LoadLibrary</code> + <code class="i">GetProcAddress</code>, the program is resolving its
+        real API at runtime to hide it from the import table. tlk-hex flags both the <b>sparse import table</b> and the
+        <b>dynamic resolution</b> pattern.</p>
+
+        <h3>4. imphash — fingerprint the import table</h3>
+        <p>The <b>imphash</b> is an MD5 over the import table (each <code class="i">dll.function</code>, in order). Two samples
+        built from the same source/toolkit usually share an imphash even if their bytes differ — so it's a cheap way to
+        <b>cluster a malware family</b> or spot siblings. tlk-hex computes it and shows it in Findings; copy it into a
+        threat-intel search to find related samples.</p>
+
+        <h3>Reading what's left</h3>
+        <p>Even a packed file leaks a little. Before unpacking, skim:</p>
+        <ul>
+          <li>The <b>few</b> imports that <i>are</i> present — <code class="i">VirtualAlloc</code> + <code class="i">VirtualProtect</code>
+              is the classic "allocate memory, unpack into it, make it executable" trio.</li>
+          <li>The <b>entry point</b> — a packer stub is short and ends with a <code class="i">jmp</code> into freshly written memory (the "tail jump" to the original entry point / OEP).</li>
+          <li>API call comments — tlk-hex annotates known calls with their parameters (e.g.
+              <code class="i">VirtualProtect(lpAddress, dwSize, flNewProtect, lpflOldProtect)</code>) so the unpack stub reads clearly.</li>
+        </ul>
+
+        <h3>Exercise</h3>
+        <p>Take any harmless program you own, pack a copy with UPX, and open <b>both</b> in tlk-hex:</p>
+        <ol style="color:var(--dim);font-size:15.5px;line-height:1.9">
+          <li>Compare the <b>Segments</b> entropy — watch the code section jump above 7.5 in the packed copy.</li>
+          <li>Confirm the <b>UPX</b> packer finding and the sparse import table.</li>
+          <li>Run <code class="i">upx -d</code>, reopen, and verify the imports and strings come back.</li>
+        </ol>
+        <div class="note warn">Only pack/unpack software you own or are authorized to analyze. Never try to defeat the
+        protection of software you didn't buy.</div>
+      </div>
+
       <div class="mod" id="glossary">
         <div class="mod-tag">reference</div>
         <h2>Glossary</h2>
@@ -607,6 +679,8 @@ runtime unpacking (packers that unpack while running)</pre></div>
           <dt>PDB / Symbol</dt><dd>A helper file containing function names. Once loaded, <code>sub_X</code> becomes its real name.</dd>
           <dt>Patch</dt><dd>Changing bytes in the file. In tlk-hex via <kbd>F2</kbd>; without breaking the original.</dd>
           <dt>Packer</dt><dd>Protection that compresses/encrypts code and unpacks at runtime. Shows up as high entropy.</dd>
+          <dt>Entropy</dt><dd>A 0–8 measure of randomness. &gt; 7.5 in a code section usually means packed/encrypted.</dd>
+          <dt>imphash</dt><dd>An MD5 fingerprint of the import table; shared across samples from the same toolkit/family.</dd>
         </dl>
       </div>
 

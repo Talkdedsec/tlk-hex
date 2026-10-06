@@ -1,0 +1,45 @@
+{
+    "version": "0.1.3",
+    "description": "tlk-hex - interactive disassembler for Windows (IDA-style text and graph views, PDB symbols, hex patching).",
+    "homepage": "https://github.com/Talkdedsec/tlk-hex",
+    "license": "MIT with Commons Clause",
+    "notes": "Portable build - no .NET install required. Run 'tlk-hex' or launch from the Start menu shortcut.",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/Talkdedsec/tlk-hex/releases/download/v0.1.3/tlk-hex-v0.1.3-win-x64.zip",
+            "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+    },
+    "bin": [
+        [
+            "tlk-hex-v0.1.3-win-x64-portable.exe",
+            "tlk-hex"
+        ]
+    ],
+    "shortcuts": [
+        [
+            "tlk-hex-v0.1.3-win-x64-portable.exe",
+            "tlk-hex"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/Talkdedsec/tlk-hex/releases/download/v$version/tlk-hex-v$version-win-x64.zip"
+            }
+        },
+        "bin": [
+            [
+                "tlk-hex-v$version-win-x64-portable.exe",
+                "tlk-hex"
+            ]
+        ],
+        "shortcuts": [
+            [
+                "tlk-hex-v$version-win-x64-portable.exe",
+                "tlk-hex"
+            ]
+        ]
+    }
+}

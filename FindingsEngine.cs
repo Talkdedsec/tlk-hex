@@ -71,6 +71,16 @@ public static class FindingsEngine
             "Dosya/dizin tarama API'leri.", R_INFO),
     };
 
+    // Bilinen paketleyici / koruyucu bolum adlari (kucuk harf) -> arac
+    private static readonly (string Sig, string Tool)[] PackerSigs =
+    {
+        ("upx", "UPX"), (".aspack", "ASPack"), (".adata", "ASPack"), (".nsp", "NsPack"),
+        (".fsg", "FSG"), (".petite", "Petite"), (".mpress", "MPRESS"), (".themida", "Themida"),
+        (".vmp", "VMProtect"), (".enigma", "Enigma"), (".pec", "PECompact"), (".y0da", "yoda"),
+        (".boom", "Boomerang"), (".mew", "MEW"), (".packed", "generic"), (".perplex", "Perplex"),
+        ("winlice", "WinLicense"), (".taz", "PESpin"), (".svkp", "SVKP"),
+    };
+
     // String icinde aranan hassas kelimeler
     private static readonly string[] SensitiveWords =
         { "password", "passwd", "secret", "apikey", "api_key", "token", "credential",
@@ -173,6 +183,47 @@ public static class FindingsEngine
             });
         }
 
+        // Bilinen paketleyici bolum adlari
+        var packerHits = new List<string>();
+        foreach (var s in r.Sections)
+        {
+            string nm = s.Name.ToLowerInvariant();
+            foreach (var (sig, tool) in PackerSigs)
+                if (nm.Contains(sig)) { packerHits.Add($"{s.Name} ({tool})"); break; }
+        }
+        if (packerHits.Count > 0)
+        {
+            list.Add(new FindingEntry
+            {
+                Severity = "Yuksek", Category = "Imza", Title = "Paketleyici imzasi",
+                Detail = string.Join(", ", packerHits.Distinct()) + " - bilinen paketleyici bolum adi; once acmak (unpack) gerekir.",
+                Rank = R_HIGH,
+            });
+        }
+
+        // Seyrek import tablosu + dinamik cozum -> paketlenmis gostergesi
+        if (r.Imports.Count > 0 && r.Imports.Count < 12 && r.FileType != "DLL")
+        {
+            list.Add(new FindingEntry
+            {
+                Severity = "Orta", Category = "Gosterge", Title = "Seyrek import tablosu",
+                Detail = $"Yalnizca {r.Imports.Count} import; gercek yetenekler calisma aninda cozuluyor olabilir (paketli/gizlenmis).",
+                Rank = R_MED,
+            });
+        }
+
+        // imphash (import tablosu parmak izi) - ayni ailedeki ornekleri eslestirmek icin
+        string imphash = ComputeImphash(r.Imports);
+        if (imphash.Length > 0)
+        {
+            list.Add(new FindingEntry
+            {
+                Severity = "Bilgi", Category = "Ozet", Title = "imphash",
+                Detail = imphash + " - import tablosu parmak izi; ayni derleyici/aile orneklerini eslestirmek icin.",
+                Rank = 90,
+            });
+        }
+
         // Dijital imza
         if (!r.IsSigned)
         {
@@ -212,6 +263,27 @@ public static class FindingsEngine
             .OrderBy(f => SevOrder(f.Severity))
             .ThenBy(f => f.Rank)
             .ToList();
+    }
+
+    // Klasik imphash: her import "dll(uzantisiz).fonksiyon" kucuk harf, virgulle birlesir, MD5.
+    private static string ComputeImphash(IReadOnlyList<ImportEntry> imports)
+    {
+        if (imports.Count == 0) return "";
+        var parts = new List<string>(imports.Count);
+        foreach (var i in imports)
+        {
+            string dll = i.Dll.ToLowerInvariant();
+            int dot = dll.LastIndexOf('.');
+            if (dot > 0 && (dll.EndsWith(".dll") || dll.EndsWith(".ocx") || dll.EndsWith(".sys")))
+                dll = dll[..dot];
+            string fn = i.Function.ToLowerInvariant();
+            if (string.IsNullOrEmpty(fn)) continue;
+            parts.Add($"{dll}.{fn}");
+        }
+        if (parts.Count == 0) return "";
+        var bytes = System.Text.Encoding.ASCII.GetBytes(string.Join(",", parts));
+        var hash = System.Security.Cryptography.MD5.HashData(bytes);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     private static int SevOrder(string sev) => sev switch

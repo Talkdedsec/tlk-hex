@@ -54,3 +54,64 @@ jobs:
             "tlk-hex-$VER-win-x64.zip" \
             "tlk-hex-$VER-win-x64-fx.zip" \
             --clobber
+
+      # Scoop + winget manifestlerini gercek surum/sha ile yenile ve main'e isle
+      - name: Update install manifests
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $ver = $env:VER.TrimStart('v')
+          $zip = "tlk-hex-$env:VER-win-x64.zip"
+          $exe = "tlk-hex-$env:VER-win-x64-portable.exe"
+          $zipSha = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          $exeSha = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
+
+          $scoop = @"
+          {
+              "version": "$ver",
+              "description": "tlk-hex - interactive disassembler for Windows (IDA-style text and graph views, PDB symbols, hex patching).",
+              "homepage": "https://github.com/Talkdedsec/tlk-hex",
+              "license": "MIT with Commons Clause",
+              "notes": "Portable build - no .NET install required. Run 'tlk-hex' or launch from the Start menu shortcut.",
+              "architecture": {
+                  "64bit": {
+                      "url": "https://github.com/Talkdedsec/tlk-hex/releases/download/v$ver/tlk-hex-v$ver-win-x64.zip",
+                      "hash": "$zipSha"
+                  }
+              },
+              "bin": [["tlk-hex-v$ver-win-x64-portable.exe", "tlk-hex"]],
+              "shortcuts": [["tlk-hex-v$ver-win-x64-portable.exe", "tlk-hex"]],
+              "checkver": "github",
+              "autoupdate": {
+                  "architecture": {
+                      "64bit": { "url": "https://github.com/Talkdedsec/tlk-hex/releases/download/v`$version/tlk-hex-v`$version-win-x64.zip" }
+                  },
+                  "bin": [["tlk-hex-v`$version-win-x64-portable.exe", "tlk-hex"]],
+                  "shortcuts": [["tlk-hex-v`$version-win-x64-portable.exe", "tlk-hex"]]
+              }
+          }
+          "@
+          Set-Content -Path packaging/scoop/tlk-hex.json -Value $scoop -Encoding utf8
+
+          # winget: surum ve installer sha'yi guncelle (satir bazli)
+          foreach ($f in @('packaging/winget/Talkdedsec.tlk-hex.yaml',
+                           'packaging/winget/Talkdedsec.tlk-hex.installer.yaml',
+                           'packaging/winget/Talkdedsec.tlk-hex.locale.en-US.yaml')) {
+            (Get-Content $f) `
+              -replace 'PackageVersion: .*', "PackageVersion: $ver" `
+              -replace 'releases/download/v[0-9.]+/tlk-hex-v[0-9.]+-win-x64-portable\.exe', "releases/download/v$ver/tlk-hex-v$ver-win-x64-portable.exe" `
+              -replace 'releases/tag/v[0-9.]+', "releases/tag/v$ver" `
+              -replace 'InstallerSha256: .*', "InstallerSha256: $exeSha" |
+              Set-Content $f -Encoding utf8
+          }
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add packaging/scoop/tlk-hex.json packaging/winget/
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "packaging: refresh manifests for $env:VER"
+            git push origin main
+          }

@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-06
+
+### Added
+- API parameter comments: calls to ~90 common Windows/CRT functions are annotated with their prototype (e.g. `CreateFileW(lpFileName, dwDesiredAccess, …)`).
+- Triage findings: known packer section signatures (UPX, ASPack, VMProtect, Themida, …), an `imphash` import-table fingerprint, and a sparse-import heuristic.
+- Module 09 "Packers & triage" tutorial (EN + TR): entropy, packer signatures, imphash and import-only triage.
+- A one-page cheat sheet on the site (EN + TR), printable / save-as-PDF.
+- Scoop and winget install manifests under `packaging/`; the release workflow keeps their version and checksums current.
+
 ## [0.1.2] - 2026-10-06
 
 ### Added
@@ -46,3 +55,4 @@ All notable changes to this project are documented here. The format is based on
 [0.1.0]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.0
 [0.1.1]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.1
 [0.1.2]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.2
+[0.1.3]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.3

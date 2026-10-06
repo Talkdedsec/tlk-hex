@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>talkdedsec</title>
+<meta name="description" content="tlk-hex cheat sheet: shortcuts, patch bytes, assembly patterns, calling conventions and triage signals on one page.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" type="image/png" href="img/icon-256.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tlk-hex">
+<meta property="og:title" content="Cheat sheet — tlk-hex">
+<meta property="og:description" content="One-page reference: shortcuts, patch bytes, assembly patterns, calling conventions and triage signals.">
+<meta property="og:image" content="https://talkdedsec.github.io/tlk-hex/img/social.png">
+<meta property="og:url" content="https://talkdedsec.github.io/tlk-hex/cheatsheet.html">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cheat sheet — tlk-hex">
+<meta name="twitter:description" content="One-page reference: shortcuts, patch bytes, assembly patterns, calling conventions and triage signals.">
+<meta name="twitter:image" content="https://talkdedsec.github.io/tlk-hex/img/social.png">
+<style>
+  .sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;margin-top:6px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--bg-2)}
+  .card h3{margin:0 0 10px;font-size:15px;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+  .card h3 .num{font-family:var(--mono);font-size:12px;color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+  .card .tbl{margin:0}
+  .card .tbl td,.card .tbl th{padding:5px 8px;font-size:13px}
+  .card .code{margin:8px 0 0}
+  .print{margin-left:auto;font-family:var(--mono);font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:7px 14px;cursor:pointer}
+  .print:hover{border-color:var(--acc);color:var(--acc)}
+  @media print{
+    header.top,footer,.hero .btns,.print,.note.warn{display:none!important}
+    body{background:#fff;color:#111}
+    .card{break-inside:avoid;border-color:#bbb;background:#fff}
+    a{color:#111!important;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img class="mark" src="img/eye.png" alt="tlk-hex logo">tlk<span class="caret">-</span>hex</a>
+    <nav>
+      <a href="index.html">overview</a>
+      <a href="usage.html">usage</a>
+      <a href="learn.html">learn</a>
+      <a href="shortcuts.html">shortcuts</a>
+      <a href="cheatsheet.html" class="on">cheat sheet</a>
+      <a href="index.html#faq">faq</a>
+      <span class="lang"><a href="tr/kopya-kagidi.html">TR</a><a href="cheatsheet.html" class="on">EN</a></span>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding-bottom:16px">
+  <div class="wrap">
+    <span class="eyebrow">one-page reference</span>
+    <h1 style="font-size:clamp(32px,5vw,48px)">Cheat <em>sheet</em></h1>
+    <p class="lead" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      Everything you reach for mid-analysis, on one page.
+      <button class="print" onclick="window.print()">⎙ print / save as PDF</button>
+    </p>
+  </div>
+</section>
+
+<section style="padding-top:10px">
+  <div class="wrap">
+    <div class="sheet">
+
+      <div class="card">
+        <h3><span class="num">01</span> Navigation</h3>
+        <table class="tbl">
+          <tr><td><kbd>G</kbd></td><td>Go to address / name</td></tr>
+          <tr><td><kbd>Enter</kbd> / <kbd>Esc</kbd></td><td>Follow / back</td></tr>
+          <tr><td><kbd>Ctrl</kbd><kbd>↵</kbd></td><td>Forward</td></tr>
+          <tr><td><kbd>Ctrl</kbd><kbd>P</kbd></td><td>Jump to function</td></tr>
+          <tr><td><kbd>X</kbd></td><td>Who references this</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>Text ↔ graph</td></tr>
+          <tr><td><kbd>F5</kbd></td><td>Pseudocode</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">02</span> Edit &amp; mark up</h3>
+        <table class="tbl">
+          <tr><td><kbd>N</kbd></td><td>Rename</td></tr>
+          <tr><td><kbd>;</kbd> / <kbd>:</kbd></td><td>Comment / repeatable</td></tr>
+          <tr><td><kbd>C</kbd> / <kbd>D</kbd> / <kbd>A</kbd></td><td>Make code / data / string</td></tr>
+          <tr><td><kbd>U</kbd></td><td>Make undefined</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Create function</td></tr>
+          <tr><td><kbd>H</kbd> / <kbd>O</kbd></td><td>Hex↔dec / toggle offset</td></tr>
+          <tr><td><kbd>F2</kbd></td><td>Hex edit mode</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">03</span> Patch bytes</h3>
+        <table class="tbl">
+          <tr><th>Want</th><th>Do</th><th>Byte</th></tr>
+          <tr><td>Invert branch</td><td><code>jz</code>↔<code>jnz</code></td><td><code>74</code>↔<code>75</code></td></tr>
+          <tr><td>Never jump</td><td>NOP it</td><td><code>90</code></td></tr>
+          <tr><td>Always jump</td><td><code>jcc</code>→<code>jmp</code></td><td><code>→EB</code></td></tr>
+          <tr><td>Force return</td><td>write <code>ret</code></td><td><code>C3</code></td></tr>
+          <tr><td>Return 1</td><td><code>mov eax,1;ret</code></td><td><code>B8 01 00 00 00 C3</code></td></tr>
+          <tr><td>Return 0</td><td><code>xor eax,eax;ret</code></td><td><code>31 C0 C3</code></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">04</span> Flow in assembly</h3>
+        <div class="code"><div class="hdr">if (x == 0)</div><pre><span class="m">test</span>  <span class="r">eax</span>, <span class="r">eax</span>
+<span class="m">jnz</span>   <span class="nm">else</span>       <span class="cm">; not 0 → skip</span></pre></div>
+        <div class="code"><div class="hdr">while / for</div><pre><span class="nm">top:</span> <span class="cm">; body...</span>
+<span class="m">cmp</span>   <span class="r">ecx</span>, <span class="r">edx</span>
+<span class="m">jl</span>    <span class="nm">top</span>        <span class="cm">; back-edge = loop</span></pre></div>
+        <div class="code"><div class="hdr">switch</div><pre><span class="m">jmp</span>   <span class="r">[rax*8 + table]</span></pre></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">05</span> Calling conventions</h3>
+        <table class="tbl">
+          <tr><th>ABI</th><th>Arguments</th></tr>
+          <tr><td>x64 (Windows)</td><td><code>rcx</code>, <code>rdx</code>, <code>r8</code>, <code>r9</code>, then stack</td></tr>
+          <tr><td>x64 (System V)</td><td><code>rdi</code>, <code>rsi</code>, <code>rdx</code>, <code>rcx</code>, <code>r8</code>, <code>r9</code></td></tr>
+          <tr><td>x86 cdecl/stdcall</td><td>all on stack (right→left)</td></tr>
+          <tr><td>x86 fastcall</td><td><code>ecx</code>, <code>edx</code>, then stack</td></tr>
+          <tr><td>Return value</td><td><code>rax</code> / <code>eax</code></td></tr>
+        </table>
+        <div class="note" style="margin-top:8px">x64 callers leave <b>32 bytes</b> of shadow space.</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">06</span> Opcodes worth knowing</h3>
+        <table class="tbl">
+          <tr><td><code>C3</code> / <code>C2</code></td><td><code>ret</code> / <code>ret n</code></td></tr>
+          <tr><td><code>E8</code> / <code>E9</code></td><td><code>call</code> / <code>jmp</code> rel32</td></tr>
+          <tr><td><code>EB</code></td><td>short <code>jmp</code></td></tr>
+          <tr><td><code>74</code>/<code>75</code></td><td><code>je</code>/<code>jne</code></td></tr>
+          <tr><td><code>90</code></td><td><code>nop</code></td></tr>
+          <tr><td><code>55</code> <code>8B EC</code></td><td>x86 prologue (<code>push ebp;mov ebp,esp</code>)</td></tr>
+          <tr><td><code>CC</code></td><td><code>int3</code> (breakpoint / padding)</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">07</span> Triage signals</h3>
+        <table class="tbl">
+          <tr><th>Signal</th><th>Reading</th></tr>
+          <tr><td>Entropy &gt; 7.5 (code)</td><td>packed / encrypted</td></tr>
+          <tr><td><code>UPX0</code>/<code>.vmp</code>/<code>.themida</code></td><td>packer section name</td></tr>
+          <tr><td>&lt; 12 imports + <code>GetProcAddress</code></td><td>runtime-resolved API</td></tr>
+          <tr><td>imphash match</td><td>same family / toolkit</td></tr>
+          <tr><td>W+X section</td><td>self-modifying code</td></tr>
+          <tr><td>no digital signature</td><td>publisher unverified</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">08</span> API → capability</h3>
+        <table class="tbl">
+          <tr><td><code>VirtualAllocEx</code> + <code>WriteProcessMemory</code> + <code>CreateRemoteThread</code></td><td>process injection</td></tr>
+          <tr><td><code>SetWindowsHookEx</code> / <code>GetAsyncKeyState</code></td><td>keylogging</td></tr>
+          <tr><td><code>IsDebuggerPresent</code> / <code>NtQueryInformationProcess</code></td><td>anti-debug</td></tr>
+          <tr><td><code>InternetOpen</code> / <code>URLDownloadToFile</code> / <code>socket</code></td><td>network / C2</td></tr>
+          <tr><td><code>RegSetValue</code> / <code>CreateService</code></td><td>persistence</td></tr>
+          <tr><td><code>CryptEncrypt</code> + file walk</td><td>possible ransomware</td></tr>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="note warn mt">For authorized analysis, education and research only. Patch/unpack only software you own or are
+    allowed to study.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>tlk-hex — interactive disassembler · <a class="inl" href="https://github.com/Talkdedsec/tlk-hex" style="color:var(--dim)">github.com/Talkdedsec/tlk-hex</a></div>
+    <div class="warn">authorized analysis · education · research only</div>
+  </div>
+</footer>
+
+</body>
+</html>
