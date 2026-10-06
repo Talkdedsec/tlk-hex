@@ -7,6 +7,6 @@ Commands:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/Talkdedsec/tlk-hex/releases/download/v0.1.3/tlk-hex-v0.1.3-win-x64-portable.exe
-    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+    InstallerSha256: 95b790b366ad1a865ac5451800350547d75d81960debc0cecf0be071f41882af
 ManifestType: installer
 ManifestVersion: 1.6.0
