@@ -199,6 +199,36 @@ public class FlirtTests
     }
 }
 
+public class ReportTests
+{
+    [Fact]
+    public void Html_includes_sections_and_escapes()
+    {
+        var r = new AnalysisResult
+        {
+            FilePath = @"C:\x\evil<name>.exe",
+            FileSize = 2048,
+            Architecture = "x64",
+            FileType = "EXE",
+            Findings =
+            {
+                new FindingEntry { Severity = "Yuksek", Category = "Yetenek", Title = "Kod enjeksiyonu", Detail = "a & b <c>" },
+                new FindingEntry { Severity = "Bilgi", Category = "Ozet", Title = "imphash", Detail = "deadbeef - parmak izi" },
+            },
+            Imports = { new ImportEntry { Dll = "kernel32.dll", Function = "CreateFileW" } },
+            Strings = { new StringEntry { Value = "http://evil.example/c2", Length = 22, Encoding = "C" } },
+        };
+        string h = Report.Html(r);
+        Assert.Contains("<!doctype html>", h);
+        Assert.Contains("evil&lt;name&gt;.exe", h);       // HTML-escape
+        Assert.Contains("a &amp; b &lt;c&gt;", h);
+        Assert.Contains("deadbeef", h);                   // imphash degeri
+        Assert.Contains("kernel32.dll", h);
+        Assert.Contains("http://evil.example/c2", h);
+        Assert.DoesNotContain("<script", h);
+    }
+}
+
 public class LoaderDetectTests
 {
     [Fact]

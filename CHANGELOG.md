@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-06
+
+### Added
+- Two-file comparison (BinDiff): match functions between the open file and a second binary by a normalized mnemonic fingerprint plus called-import set; classified as identical / changed / only-left / only-right with a similarity score. *File → Compare with another file…*
+- Library signature recognition (FLIRT-lite): generate byte-pattern signatures (`.sig`) from a named binary and apply them to name matching functions in a stripped one; ambiguous matches are skipped. *File → Produce → Generate signatures* and *File → Apply signatures*.
+- Self-contained HTML analysis report (findings, sections, imports grouped by DLL, URL indicators, longest strings). *File → Produce → Analysis report (HTML)*.
+
 ## [0.1.3] - 2026-10-06
 
 ### Added
@@ -56,3 +63,4 @@ All notable changes to this project are documented here. The format is based on
 [0.1.1]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.1
 [0.1.2]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.2
 [0.1.3]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.3
+[0.1.4]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.4

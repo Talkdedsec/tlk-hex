@@ -40,6 +40,10 @@ flow — all in one window, in seconds.
 | **Pseudocode** | A C-like, readable form of the assembly (`F5`). |
 | **Powerful search** | Names, strings, code lines, comments, byte patterns (`48 8B ?? 05`) and immediates. |
 | **Symbol support** | Downloads PDBs so names like `sub_140001A54` become real function names. |
+| **API annotations & triage** | Call sites get API prototypes; findings flag packers, imphash and injection/keylog/C2 patterns. |
+| **Two-file compare (BinDiff)** | Match functions across two binaries: identical / changed / added / removed, with similarity. |
+| **Library signatures (FLIRT-lite)** | Generate byte-pattern signatures from a named build and apply them to a stripped one. |
+| **HTML report** | Export a shareable, self-contained analysis report (findings, sections, imports, strings). |
 | **Hex & patch** | Edit raw bytes, apply patches to a file or export as DIF. The original is untouched. |
 | **Name / comment / fold** | Your work is saved and comes back when you reopen the file. |
 | **AI help** | Optional — with your own API key: function explanations and pseudocode improvement. |
