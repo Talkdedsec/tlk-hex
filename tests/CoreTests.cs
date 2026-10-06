@@ -108,6 +108,56 @@ public class ApiHintsTests
     }
 }
 
+public class BinDiffTests
+{
+    private static FuncSig F(ulong ea, string name, int ic, ulong hash, bool dummy = false, params string[] calls)
+        => new() { Ea = ea, Name = name, InsnCount = ic, Hash = hash, Dummy = dummy, Calls = calls };
+
+    [Fact]
+    public void Identical_lists_match_fully()
+    {
+        var a = new[] { F(1, "foo", 10, 0x111, false, "CreateFileW"), F(2, "bar", 5, 0x222) };
+        var b = new[] { F(100, "foo", 10, 0x111, false, "CreateFileW"), F(200, "bar", 5, 0x222) };
+        var s = BinDiff.Summarize(BinDiff.Compare(a, b));
+        Assert.Equal(2, s.Identical);
+        Assert.Equal(0, s.Changed);
+        Assert.Equal(0, s.OnlyLeft + s.OnlyRight);
+    }
+
+    [Fact]
+    public void Added_and_removed_are_classified()
+    {
+        var a = new[] { F(1, "foo", 10, 0x111), F(2, "gone", 7, 0x999) };
+        var b = new[] { F(100, "foo", 10, 0x111), F(200, "brandnew", 8, 0xABC) };
+        var s = BinDiff.Summarize(BinDiff.Compare(a, b));
+        Assert.Equal(1, s.Identical);
+        Assert.Equal(1, s.OnlyLeft);
+        Assert.Equal(1, s.OnlyRight);
+    }
+
+    [Fact]
+    public void Same_name_different_body_is_changed()
+    {
+        // ayni isim, farkli hash + yakin govde + ortak cagri -> degisti
+        var a = new[] { F(1, "check", 20, 0x111, false, "strcmp", "printf") };
+        var b = new[] { F(100, "check", 22, 0x222, false, "strcmp", "printf") };
+        var pairs = BinDiff.Compare(a, b);
+        var s = BinDiff.Summarize(pairs);
+        Assert.Equal(1, s.Changed);
+        Assert.True(pairs.Single(p => p.Kind == DiffKind.Changed).Similarity is > 0.5 and < 1.0);
+    }
+
+    [Fact]
+    public void Fuzzy_matches_renamed_function_by_structure()
+    {
+        // isim degismis (biri dummy) ama govde + cagrilar ayni -> birebir (hash esit)
+        var a = new[] { F(1, "sub_1000", 12, 0x55, true, "send", "recv") };
+        var b = new[] { F(100, "sub_2000", 12, 0x55, true, "send", "recv") };
+        var s = BinDiff.Summarize(BinDiff.Compare(a, b));
+        Assert.Equal(1, s.Identical);
+    }
+}
+
 public class LoaderDetectTests
 {
     [Fact]

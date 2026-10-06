@@ -385,6 +385,8 @@ public partial class MainWindow : Window
         Add(file, "PDB dosyası yükle...", "", LoadPdbFile);
         Add(file, "Veritabanını sıfırla ve yeniden analiz et...", "", ResetDb);
         Sep(file);
+        Add(file, "Başka dosyayla karşılaştır... (BinDiff)", "", CompareWith);
+        Sep(file);
         var produce = new MenuItem { Header = "Dosya üret" };
         file.Items.Add(produce);
         _needFile.Add(produce);
