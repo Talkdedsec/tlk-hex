@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-10-06
+
+### Added
+- Rule-based scanning (YARA-subset): a self-contained engine with text / wide / hex (with `??` and nibble wildcards) / regex strings and `any` / `all` / `N of them` conditions, plus a built-in rule set (packers, base64 PE header, PowerShell, persistence run key, credential theft, AES S-box, URLs). Scan with the built-in rules or load your own `.yar` file; matches appear in a pane and are merged into Findings (so they flow into the HTML report). *View → Rule scan* and *Scan with a rule file…*
+
 ## [0.1.4] - 2026-10-06
 
 ### Added
@@ -64,3 +69,4 @@ All notable changes to this project are documented here. The format is based on
 [0.1.2]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.2
 [0.1.3]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.3
 [0.1.4]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.4
+[0.1.5]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.5

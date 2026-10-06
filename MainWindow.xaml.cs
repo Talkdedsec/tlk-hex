@@ -477,6 +477,8 @@ public partial class MainWindow : Window
         Add(sub, "Imports", "", ShowImports);
         Add(sub, "Exports", "", ShowExports);
         Add(sub, "Bulgular (güvenlik analizi)", "", ShowFindings);
+        Add(sub, "Kural taraması (YARA benzeri)", "", () => ScanRules(null));
+        Add(sub, "Kural dosyasıyla tara (.yar)...", "", ScanRuleFile);
         Sep(sub);
         Add(sub, "Fonksiyon ağaçı", "", () => ShowAnch(_treeAnch), false);
         Add(sub, "Graph overview", "", () => ShowAnch(_overAnch), false);
