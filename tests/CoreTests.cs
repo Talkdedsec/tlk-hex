@@ -229,6 +229,65 @@ public class ReportTests
     }
 }
 
+public class RuleScanTests
+{
+    [Fact]
+    public void Builtins_parse()
+    {
+        var rules = RuleScan.Builtins();
+        Assert.True(rules.Count >= 8);
+        Assert.Contains(rules, r => r.Name == "UPX_Packer");
+        Assert.Contains(rules, r => r.Name == "AES_SBox");
+        Assert.Contains(rules, r => r.Pats.Any(p => p.Kind == PatKind.Regex));
+    }
+
+    [Fact]
+    public void Scan_text_and_hex_and_wildcards()
+    {
+        var text = @"
+rule t_text { strings: $a = ""hello"" condition: any of them }
+rule t_hex  { strings: $h = { DE AD ?? EF } condition: any of them }
+rule t_all  { meta: severity = ""Yuksek"" strings: $x = ""foo"" $y = ""bar"" condition: all of them }
+rule t_two  { strings: $p = ""a"" $q = ""b"" $r = ""zzz"" condition: 2 of them }
+";
+        var rules = RuleScan.Parse(text);
+        Assert.Equal(4, rules.Count);
+
+        var data = new byte[] { (byte)'h', (byte)'e', (byte)'l', (byte)'l', (byte)'o', 0xDE, 0xAD, 0x12, 0xEF };
+        var strings = new[] { "hello world", "foobar here", "a and b only" };
+        var m = RuleScan.Scan(data, strings, rules);
+        var names = m.Select(x => x.Rule.Name).ToHashSet();
+        Assert.Contains("t_text", names);   // "hello" in data
+        Assert.Contains("t_hex", names);     // DE AD ?? EF
+        Assert.Contains("t_all", names);     // foo AND bar (both in "foobar")
+        Assert.Contains("t_two", names);     // a and b -> 2 of 3
+    }
+
+    [Fact]
+    public void All_of_them_requires_every_pattern()
+    {
+        var rules = RuleScan.Parse(@"rule r { strings: $a=""x"" $b=""missing"" condition: all of them }");
+        var m = RuleScan.Scan(new byte[] { (byte)'x' }, new[] { "x only" }, rules);
+        Assert.Empty(m);   // $b yok -> eslesmez
+    }
+
+    [Fact]
+    public void Hex_wildcard_nibble()
+    {
+        var rules = RuleScan.Parse(@"rule r { strings: $h = { 4? 5A } condition: any of them }");
+        Assert.NotEmpty(RuleScan.Scan(new byte[] { 0x4D, 0x5A }, Array.Empty<string>(), rules));
+        Assert.Empty(RuleScan.Scan(new byte[] { 0x5D, 0x5A }, Array.Empty<string>(), rules));
+    }
+
+    [Fact]
+    public void Aes_sbox_detected()
+    {
+        var sbox = new byte[] { 0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76 };
+        var m = RuleScan.Scan(sbox, Array.Empty<string>(), RuleScan.Builtins());
+        Assert.Contains(m, x => x.Rule.Name == "AES_SBox");
+    }
+}
+
 public class LoaderDetectTests
 {
     [Fact]

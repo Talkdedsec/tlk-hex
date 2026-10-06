@@ -43,6 +43,7 @@ flow — all in one window, in seconds.
 | **API annotations & triage** | Call sites get API prototypes; findings flag packers, imphash and injection/keylog/C2 patterns. |
 | **Two-file compare (BinDiff)** | Match functions across two binaries: identical / changed / added / removed, with similarity. |
 | **Library signatures (FLIRT-lite)** | Generate byte-pattern signatures from a named build and apply them to a stripped one. |
+| **Rule scanning** | Built-in YARA-subset rules (text / hex / regex); load your own `.yar`. Matches flow into findings & report. |
 | **HTML report** | Export a shareable, self-contained analysis report (findings, sections, imports, strings). |
 | **Hex & patch** | Edit raw bytes, apply patches to a file or export as DIF. The original is untouched. |
 | **Name / comment / fold** | Your work is saved and comes back when you reopen the file. |
