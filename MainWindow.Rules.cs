@@ -17,8 +17,8 @@ public partial class MainWindow
         if (_s == null) return;
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Kural dosyası seç",
-            Filter = "YARA kuralları (*.yar;*.yara;*.txt)|*.yar;*.yara;*.txt|Tüm dosyalar (*.*)|*.*",
+            Title = Loc.T("Kural dosyası seç"),
+            Filter = Loc.T("YARA kuralları (*.yar;*.yara;*.txt)|*.yar;*.yara;*.txt|Tüm dosyalar (*.*)|*.*"),
         };
         if (dlg.ShowDialog(this) == true) ScanRules(dlg.FileName);
     }
@@ -40,11 +40,11 @@ public partial class MainWindow
                     return;
                 }
                 rules.AddRange(extra);
-                _ruleSource = $"gömülü + {Path.GetFileName(ruleFile)} ({extra.Count} kural)";
+                _ruleSource = Loc.F("gömülü + {0} ({1} kural)", Path.GetFileName(ruleFile), extra.Count);
             }
-            else _ruleSource = $"gömülü kurallar ({rules.Count})";
+            else _ruleSource = Loc.F("gömülü kurallar ({0})", rules.Count);
         }
-        catch (Exception ex) { Dialogs.Info(this, "Hata", "Kurallar okunamadı:\n" + ex.Message); return; }
+        catch (Exception ex) { Dialogs.Info(this, "Hata", Loc.T("Kurallar okunamadı:\n") + ex.Message); return; }
 
         _busy = true;
         UpdateEnabled();
@@ -58,7 +58,7 @@ public partial class MainWindow
             var strs = _s.Db.Strings.Select(s => s.Value).ToList();
             matches = await Task.Run(() => RuleScan.Scan(data, strs, rules));
         }
-        catch (Exception ex) { _out.Log("Kural taraması HATA: " + ex.Message); }
+        catch (Exception ex) { _out.Log(Loc.T("Kural taraması HATA: ") + ex.Message); }
         finally
         {
             Mouse.OverrideCursor = null;
@@ -69,7 +69,7 @@ public partial class MainWindow
         if (matches == null) return;
 
         _ruleMatches = matches;
-        _out.Log($"Kural taraması ({_ruleSource}): {matches.Count} kural eşleşti.");
+        _out.Log(Loc.F("Kural taraması ({0}): {1} kural eşleşti.", _ruleSource, matches.Count));
         MergeRuleFindings(matches);
         ShowRuleMatches();
     }
@@ -78,16 +78,16 @@ public partial class MainWindow
     private void MergeRuleFindings(List<RuleMatch> matches)
     {
         _result ??= _s!.ToResult();
-        _result.Findings.RemoveAll(f => f.Title.StartsWith("Kural: ", StringComparison.Ordinal));
+        _result.Findings.RemoveAll(f => f.Title.StartsWith(Loc.T("Kural: "), StringComparison.Ordinal));
         foreach (var m in matches)
         {
-            string detail = $"Eşleşen: {string.Join(", ", m.HitIds.Select(h => "$" + h))}";
-            if (m.FirstOffset >= 0) detail += $" · ilk ofset 0x{m.FirstOffset:X}";
+            string detail = Loc.F("Eşleşen: {0}", string.Join(", ", m.HitIds.Select(h => "$" + h)));
+            if (m.FirstOffset >= 0) detail += Loc.F(" · ilk ofset 0x{0:X}", m.FirstOffset);
             _result.Findings.Add(new FindingEntry
             {
                 Severity = m.Rule.Severity,
                 Category = m.Rule.Category,
-                Title = "Kural: " + m.Rule.Name,
+                Title = Loc.T("Kural: ") + m.Rule.Name,
                 Detail = detail,
                 Rank = 50,
             });
@@ -121,13 +121,13 @@ public partial class MainWindow
                     }),
                     C = new[]
                     {
-                        m.Rule.Severity, m.Rule.Category, m.Rule.Name,
+                        Loc.T(m.Rule.Severity), Loc.T(m.Rule.Category), m.Rule.Name,
                         string.Join(", ", m.HitIds.Select(h => "$" + h)),
                         m.FirstOffset >= 0 ? "0x" + m.FirstOffset.ToString("X") : "—",
                     },
                 }).ToList();
         }, true,
-        r => Dialogs.Info(this, "Kural: " + r.C[2], $"[{r.C[0]} / {r.C[1]}]\nEşleşen: {r.C[3]}\nİlk ofset: {r.C[4]}"),
+        r => Dialogs.Info(this, Loc.T("Kural: ") + r.C[2], Loc.F("[{0} / {1}]\nEşleşen: {2}\nİlk ofset: {3}", r.C[0], r.C[1], r.C[3], r.C[4])),
         r => r == null ? null : new System.Windows.Controls.ContextMenu
         {
             Items = { FunctionsPane.Mi("Satırı kopyala", () => Copy(string.Join("  ", r.C))) },

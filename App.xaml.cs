@@ -15,6 +15,8 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Dil, MainWindow'un statik alanlari olusmadan once ayarlanmali
+        Loc.Lang = Settings.Load().Lang == "en" ? "en" : "tr";
         DispatcherUnhandledException += OnUnhandled;
         for (int i = 0; i < e.Args.Length; i++)
         {
@@ -34,7 +36,7 @@ public partial class App : Application
             File.WriteAllText(CrashLog, $"{DateTime.Now}\n{e.Exception}");
         }
         catch { }
-        MessageBox.Show($"Beklenmeyen hata:\n\n{e.Exception.Message}", "tlk-hex",
+        MessageBox.Show($"{Loc.TE("Beklenmeyen hata", "Unexpected error")}:\n\n{e.Exception.Message}", "tlk-hex",
             MessageBoxButton.OK, MessageBoxImage.Warning);
         e.Handled = true; // uygulama cokmeden devam etsin
     }

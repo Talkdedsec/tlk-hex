@@ -51,7 +51,7 @@ public sealed class GoBox : Grid
         };
         _ph = new TextBlock
         {
-            Text = "Git / ara: isim, adres veya metin  (Ctrl+F)",
+            Text = Loc.T("Git / ara: isim, adres veya metin  (Ctrl+F)"),
             IsHitTestVisible = false,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(3, 0, 0, 0),

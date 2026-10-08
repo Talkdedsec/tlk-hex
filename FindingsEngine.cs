@@ -108,13 +108,13 @@ public static class FindingsEngine
             if (hits > 0)
             {
                 string detail = rule.DetailTemplate.Contains("{0}")
-                    ? string.Format(rule.DetailTemplate, hits)
-                    : rule.DetailTemplate;
+                    ? Loc.F(rule.DetailTemplate, hits)
+                    : Loc.T(rule.DetailTemplate);
                 list.Add(new FindingEntry
                 {
                     Severity = rule.Severity,
                     Category = rule.Category,
-                    Title = rule.Title,
+                    Title = Loc.T(rule.Title),
                     Detail = detail,
                     Rank = rule.Rank,
                 });
@@ -128,8 +128,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Orta", Category = "Gosterge", Title = "Dinamik API cozumu",
-                Detail = "LoadLibrary + GetProcAddress; fonksiyonlar calisma aninda cozulerek import tablosundan gizleniyor.",
+                Severity = "Orta", Category = "Gosterge", Title = Loc.T("Dinamik API cozumu"),
+                Detail = Loc.T("LoadLibrary + GetProcAddress; fonksiyonlar calisma aninda cozulerek import tablosundan gizleniyor."),
                 Rank = R_MED,
             });
         }
@@ -146,8 +146,8 @@ public static class FindingsEngine
             list.Add(new FindingEntry
             {
                 Severity = "Yuksek", Category = "Gosterge",
-                Title = $"{foundWords.Count} hassas anahtar kelime",
-                Detail = string.Join(", ", foundWords.Take(6)) + " gibi ifadeler Strings'te isaretli.",
+                Title = Loc.F("{0} hassas anahtar kelime", foundWords.Count),
+                Detail = Loc.F("{0} gibi ifadeler Strings'te isaretli.", string.Join(", ", foundWords.Take(6))),
                 Rank = R_HIGH,
             });
         }
@@ -160,8 +160,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Bilgi", Category = "Gosterge", Title = "URL / IP gostergeleri",
-                Detail = $"{urlCount} URL, {ipCount} IP benzeri ifade Strings'te bulundu.",
+                Severity = "Bilgi", Category = "Gosterge", Title = Loc.T("URL / IP gostergeleri"),
+                Detail = Loc.F("{0} URL, {1} IP benzeri ifade Strings'te bulundu.", urlCount, ipCount),
                 Rank = R_INFO,
             });
         }
@@ -177,8 +177,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Orta", Category = "Imza", Title = "Yuksek entropi (paketli?)",
-                Detail = $"{string.Join(", ", packed.Select(p => p.Name))} bolum(ler)i yuksek entropili; paketlenmis/sifreli olabilir.",
+                Severity = "Orta", Category = "Imza", Title = Loc.T("Yuksek entropi (paketli?)"),
+                Detail = Loc.F("{0} bolum(ler)i yuksek entropili; paketlenmis/sifreli olabilir.", string.Join(", ", packed.Select(p => p.Name))),
                 Rank = R_MED,
             });
         }
@@ -195,8 +195,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Yuksek", Category = "Imza", Title = "Paketleyici imzasi",
-                Detail = string.Join(", ", packerHits.Distinct()) + " - bilinen paketleyici bolum adi; once acmak (unpack) gerekir.",
+                Severity = "Yuksek", Category = "Imza", Title = Loc.T("Paketleyici imzasi"),
+                Detail = Loc.F("{0} - bilinen paketleyici bolum adi; once acmak (unpack) gerekir.", string.Join(", ", packerHits.Distinct())),
                 Rank = R_HIGH,
             });
         }
@@ -206,8 +206,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Orta", Category = "Gosterge", Title = "Seyrek import tablosu",
-                Detail = $"Yalnizca {r.Imports.Count} import; gercek yetenekler calisma aninda cozuluyor olabilir (paketli/gizlenmis).",
+                Severity = "Orta", Category = "Gosterge", Title = Loc.T("Seyrek import tablosu"),
+                Detail = Loc.F("Yalnizca {0} import; gercek yetenekler calisma aninda cozuluyor olabilir (paketli/gizlenmis).", r.Imports.Count),
                 Rank = R_MED,
             });
         }
@@ -219,7 +219,7 @@ public static class FindingsEngine
             list.Add(new FindingEntry
             {
                 Severity = "Bilgi", Category = "Ozet", Title = "imphash",
-                Detail = imphash + " - import tablosu parmak izi; ayni derleyici/aile orneklerini eslestirmek icin.",
+                Detail = imphash + Loc.T(" - import tablosu parmak izi; ayni derleyici/aile orneklerini eslestirmek icin."),
                 Rank = 90,
             });
         }
@@ -229,8 +229,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Orta", Category = "Imza", Title = "Dosya imzasiz",
-                Detail = "Dijital imza yok - yayinci kimligi dogrulanamaz.",
+                Severity = "Orta", Category = "Imza", Title = Loc.T("Dosya imzasiz"),
+                Detail = Loc.T("Dijital imza yok - yayinci kimligi dogrulanamaz."),
                 Rank = R_MED,
             });
         }
@@ -241,8 +241,8 @@ public static class FindingsEngine
         {
             list.Add(new FindingEntry
             {
-                Severity = "Orta", Category = "Imza", Title = "Yazilabilir+calistirilabilir bolum",
-                Detail = $"{string.Join(", ", wx.Select(s => s.Name))}: hem yazilabilir hem calistirilabilir; self-modifying kod olabilir.",
+                Severity = "Orta", Category = "Imza", Title = Loc.T("Yazilabilir+calistirilabilir bolum"),
+                Detail = Loc.F("{0}: hem yazilabilir hem calistirilabilir; self-modifying kod olabilir.", string.Join(", ", wx.Select(s => s.Name))),
                 Rank = R_MED,
             });
         }
@@ -252,9 +252,9 @@ public static class FindingsEngine
         list.Add(new FindingEntry
         {
             Severity = "Bilgi", Category = "Ozet",
-            Title = $"Dosya turu: {(r.FileType == "DLL" ? "yerel DLL" : r.FileType)}",
-            Detail = $"{bits} - {r.Imports.Count:N0} import - {r.Exports.Count:N0} export - "
-                     + $"{r.Functions.Count:N0} fonksiyon - {r.Strings.Count:N0} string.",
+            Title = Loc.F("Dosya turu: {0}", r.FileType == "DLL" ? Loc.T("yerel DLL") : r.FileType),
+            Detail = Loc.F("{0} - {1:N0} import - {2:N0} export - {3:N0} fonksiyon - {4:N0} string.",
+                     bits, r.Imports.Count, r.Exports.Count, r.Functions.Count, r.Strings.Count),
             Rank = 99,
         });
 

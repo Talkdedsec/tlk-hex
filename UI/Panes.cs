@@ -64,7 +64,7 @@ public class ListPane : DockPanel
         {
             var col = new DataGridTextColumn
             {
-                Header = cols[i].Header,
+                Header = Loc.T(cols[i].Header),
                 Binding = new Binding($"C[{i}]"),
                 Width = cols[i].Width <= 0 ? new DataGridLength(1, DataGridLengthUnitType.Star) : new DataGridLength(cols[i].Width),
                 SortMemberPath = $"C[{i}]",
@@ -110,7 +110,7 @@ public class ListPane : DockPanel
         _filter.SetResourceReference(TextBox.BorderBrushProperty, "BorderBrush");
         _ph = new TextBlock
         {
-            Text = "Hızlı filtre (Ctrl+F)",
+            Text = Loc.T("Hızlı filtre (Ctrl+F)"),
             IsHitTestVisible = false,
             Margin = new Thickness(7, 3, 0, 0),
             FontSize = 12,
@@ -417,7 +417,7 @@ public sealed class FunctionsPane : Grid
     public static MenuItem Mi(string header, Action act)
     {
         var parts = header.Split('\t');
-        var mi = new MenuItem { Header = parts[0] };
+        var mi = new MenuItem { Header = Loc.T(parts[0]) };
         if (parts.Length > 1) mi.InputGestureText = parts[1];
         mi.Click += (_, _) => act();
         return mi;
@@ -443,7 +443,7 @@ public sealed class CallTreePane : DockPanel
     {
         _title = new TextBlock { Margin = new Thickness(6, 4, 6, 4), FontWeight = FontWeights.SemiBold, FontSize = 12 };
         _title.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
-        var chk = new CheckBox { Content = "İmleci izle", IsChecked = true, Margin = new Thickness(6, 4, 6, 4), FontSize = 11.5 };
+        var chk = new CheckBox { Content = Loc.T("İmleci izle"), IsChecked = true, Margin = new Thickness(6, 4, 6, 4), FontSize = 11.5 };
         chk.SetResourceReference(Control.ForegroundProperty, "TextDimBrush");
         chk.Checked += (_, _) => Follow = true;
         chk.Unchecked += (_, _) => Follow = false;
@@ -630,7 +630,7 @@ public sealed class OutputPane : DockPanel
     public void Log(string s)
     {
         if (_log.Text.Length > 400_000) _log.Text = _log.Text[^200_000..];
-        _log.AppendText(s + Environment.NewLine);
+        _log.AppendText(Loc.T(s) + Environment.NewLine);
         _log.ScrollToEnd();
     }
 

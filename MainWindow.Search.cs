@@ -62,14 +62,14 @@ public partial class MainWindow
             Ea = h.Ea,
             C = new[]
             {
-                h.Kind, db.SegOf(h.Ea)?.Name + ":" + db.AddrStr(h.Ea),
+                Loc.T(h.Kind), db.SegOf(h.Ea)?.Name + ":" + db.AddrStr(h.Ea),
                 db.FuncAt(h.Ea) is Function f ? db.FuncName(f) : "", h.Text,
             },
         }).ToList();
         _sp.Results.SetRows(rows);
-        string more = hits.Count >= 5000 ? " (ilk 5000)" : "";
+        string more = hits.Count >= 5000 ? Loc.T(" (ilk 5000)") : "";
         _sp.SetStatus(hits.Count == 0
-            ? $"'{q.Text}' için sonuç yok."
-            : $"{hits.Count:N0} sonuç{more}  •  {sw.Elapsed.TotalSeconds:0.00} sn  •  tıkla = önizle, çift tık / Enter = git");
+            ? Loc.F("'{0}' için sonuç yok.", q.Text)
+            : Loc.F("{0} sonuç{1}  •  {2} sn  •  tıkla = önizle, çift tık / Enter = git", hits.Count, more, sw.Elapsed.TotalSeconds.ToString("0.00")));
     }
 }

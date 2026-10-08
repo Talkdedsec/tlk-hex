@@ -26,9 +26,9 @@ public sealed class Session
     public static Session Open(string path, LoadOptions opt, IdbFile? idb, int minStr,
         Action<string> log, Action<string> progress, Action<Listing>? configure = null)
     {
-        log($"Dosya yükleniyor: {path}");
+        log(Loc.F("Dosya yükleniyor: {0}", path));
         var db = Loaders.Load(path, opt, log);
-        log($"Biçim: {db.Format}  ({db.Machine}, {db.Bitness}-bit)");
+        log(Loc.F("Biçim: {0}  ({1}, {2}-bit)", db.Format, db.Machine, db.Bitness));
         var s = new Session(db, opt);
         s.Au.Progress = progress;
         s.Au.MinStrLen = minStr;
@@ -36,7 +36,7 @@ public sealed class Session
         if (idb != null)
         {
             IdbStore.ApplyPatches(db, idb);
-            if (idb.Patches.Count > 0) log($"  {idb.Patches.Count} yamalı bayt uygulandı.");
+            if (idb.Patches.Count > 0) log(Loc.F("  {0} yamalı bayt uygulandı.", idb.Patches.Count));
         }
 
         // yerel / onbellekteki PDB
@@ -48,10 +48,10 @@ public sealed class Session
                 var (n, funcs) = Pdb.Apply(db, syms);
                 s.Au.ExtraSeeds.AddRange(funcs);
                 db.SymbolSource = pdbPath;
-                log($"Semboller yüklendi: {Path.GetFileName(pdbPath)} ({n:N0} isim, {funcs.Count:N0} fonksiyon)");
+                log(Loc.F("Semboller yüklendi: {0} ({1} isim, {2} fonksiyon)", Path.GetFileName(pdbPath), n, funcs.Count));
             }
         }
-        catch (Exception ex) { log("PDB okunamadı: " + ex.Message); }
+        catch (Exception ex) { log(Loc.T("PDB okunamadı: ") + ex.Message); }
 
         if (opt.Analyze)
         {
@@ -70,13 +70,13 @@ public sealed class Session
             s.Au.FinalizeFunctions();
             s.Au.BuildStrings();
             s.StartEa = IdbStore.LastEa(idb);
-            log($"Kayıtlı veritabanı yüklendi: {idb.Ops.Count} işlem, {idb.Names.Count} isim, {idb.Comments.Count} yorum.");
+            log(Loc.F("Kayıtlı veritabanı yüklendi: {0} işlem, {1} isim, {2} yorum.", idb.Ops.Count, idb.Names.Count, idb.Comments.Count));
         }
 
         progress("Listing hazırlanıyor...");
         configure?.Invoke(s.List);
         s.List.Build();
-        log($"Listing: {s.List.TotalLines:N0} satır.");
+        log(Loc.F("Listing: {0} satır.", s.List.TotalLines));
         return s;
     }
 

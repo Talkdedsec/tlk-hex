@@ -173,7 +173,7 @@ public partial class MainWindow
         string loc = _s.Db.LocStr(ea);
         string offs = off >= 0 ? off.ToString("X8") : "--------";
         string z = _graphMode ? $"{_gv.Zoom * 100:0.00}%  " : "";
-        _idaStatus.Text = $"{z}{offs} {_s.Db.AddrStr(ea)}: {loc}   (Hex View-1 ile senkronize)";
+        _idaStatus.Text = $"{z}{offs} {_s.Db.AddrStr(ea)}: {loc}   " + Loc.T("(Hex View-1 ile senkronize)");
         StatusRight.Text = _s.Db.SegOf(ea)?.Name + ":" + _s.Db.AddrStr(ea);
     }
 
@@ -393,7 +393,7 @@ public partial class MainWindow
                     "Orta" => System.Windows.Media.Color.FromRgb(0xD0, 0x8A, 0x10),
                     _ => System.Windows.Media.Color.FromRgb(0x3A, 0x7B, 0xD5),
                 }),
-                C = new[] { f.Severity, f.Category, f.Title, f.Detail },
+                C = new[] { Loc.T(f.Severity), Loc.T(f.Category), f.Title, f.Detail },
             }).ToList();
         }, true, r => Dialogs.Info(this, r.C[2], $"[{r.C[0]} / {r.C[1]}]\n\n{r.C[3]}"),
             r => r == null ? null : new ContextMenu { Items = { FunctionsPane.Mi("Kopyala", () => Copy($"[{r.C[0]}] {r.C[2]}: {r.C[3]}")) } });

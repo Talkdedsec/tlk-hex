@@ -17,8 +17,8 @@ public partial class MainWindow
         if (_s == null || _busy) return;
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Karşılaştırılacak ikinci dosyayı seç",
-            Filter = "Çalıştırılabilir / kütüphane|*.exe;*.dll;*.sys;*.ocx;*.so;*.o;*.elf;*.bin|Tüm dosyalar (*.*)|*.*",
+            Title = Loc.T("Karşılaştırılacak ikinci dosyayı seç"),
+            Filter = Loc.T("Çalıştırılabilir / kütüphane|*.exe;*.dll;*.sys;*.ocx;*.so;*.o;*.elf;*.bin|Tüm dosyalar (*.*)|*.*"),
         };
         if (dlg.ShowDialog(this) != true) return;
         string path = dlg.FileName;
@@ -34,7 +34,7 @@ public partial class MainWindow
         SetAu(true, "BinDiff:  ikinci dosya analiz ediliyor");
         Mouse.OverrideCursor = Cursors.AppStarting;
         _out.Log("");
-        _out.Log($"BinDiff: {Path.GetFileName(path)} analiz ediliyor...");
+        _out.Log(Loc.F("BinDiff: {0} analiz ediliyor...", Path.GetFileName(path)));
 
         List<DiffPair>? pairs = null;
         DiffStats? stats = null;
@@ -55,7 +55,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            _out.Log("BinDiff HATA: " + ex.Message);
+            _out.Log(Loc.T("BinDiff HATA: ") + ex.Message);
             Dialogs.Info(this, "Karşılaştırma hatası", "İkinci dosya analiz edilemedi:\n\n" + ex.Message);
         }
         finally
@@ -69,17 +69,17 @@ public partial class MainWindow
 
         _diffPairs = pairs;
         _diffRightName = Path.GetFileName(path);
-        _out.Log($"BinDiff tamamlandı: {stats.Identical} aynı, {stats.Changed} değişmiş, "
-                 + $"{stats.OnlyLeft} yalnız solda, {stats.OnlyRight} yalnız sağda.");
+        _out.Log(Loc.F("BinDiff tamamlandı: {0} aynı, {1} değişmiş, {2} yalnız solda, {3} yalnız sağda.",
+                 stats.Identical, stats.Changed, stats.OnlyLeft, stats.OnlyRight));
         ShowDiff();
     }
 
     private void ShowDiff()
     {
         if (_diffPairs == null) return;
-        OpenList("bindiff", $"BinDiff — {_diffRightName}", new[]
+        OpenList("bindiff", Loc.F("BinDiff — {0}", _diffRightName), new[]
         {
-            ("Durum", 100.0), ("Benzerlik", 80.0), ("Sol (bu dosya)", 300.0), ("Sağ (" + _diffRightName + ")", -1.0),
+            ("Durum", 100.0), ("Benzerlik", 80.0), ("Sol (bu dosya)", 300.0), (Loc.F("Sağ ({0})", _diffRightName), -1.0),
         }, () =>
         {
             int Order(DiffKind k) => k switch
@@ -103,13 +103,13 @@ public partial class MainWindow
                     }),
                     C = new[]
                     {
-                        p.Kind switch
+                        Loc.T(p.Kind switch
                         {
                             DiffKind.Identical => "aynı",
                             DiffKind.Changed => "değişti",
                             DiffKind.OnlyLeft => "yalnız solda",
                             _ => "yalnız sağda",
-                        },
+                        }),
                         p.Kind is DiffKind.OnlyLeft or DiffKind.OnlyRight ? "" : $"{p.Similarity * 100:0}%",
                         Side(p.Left),
                         Side(p.Right),
@@ -131,5 +131,5 @@ public partial class MainWindow
     }
 
     private static string Side(FuncSig? s)
-        => s == null ? "—" : $"{s.Name}  ({s.InsnCount} komut)";
+        => s == null ? "—" : Loc.F("{0}  ({1} komut)", s.Name, s.InsnCount);
 }

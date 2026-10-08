@@ -48,6 +48,7 @@ flow — all in one window, in seconds.
 | **Hex & patch** | Edit raw bytes, apply patches to a file or export as DIF. The original is untouched. |
 | **Name / comment / fold** | Your work is saved and comes back when you reopen the file. |
 | **AI help** | Optional — with your own API key: function explanations and pseudocode improvement. |
+| **Bilingual UI** | Full English and Turkish interface; switch in Options (applies on restart). |
 | **Three themes** | Light · dark · purple night; customizable background image. |
 
 <table>

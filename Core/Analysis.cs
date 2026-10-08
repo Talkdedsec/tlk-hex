@@ -43,7 +43,7 @@ public sealed class AutoAnalysis
         MarkExterns();
         if (!_db.CanDisasm)
         {
-            log($"  Bu işlemci ({_db.Machine}) için disassembler yok; sadece veri olarak yüklendi.");
+            log(Loc.F("  Bu işlemci ({0}) için disassembler yok; sadece veri olarak yüklendi.", _db.Machine));
             BuildStrings();
             return;
         }
@@ -63,7 +63,7 @@ public sealed class AutoAnalysis
         AlignPass();
         BuildStrings();
         AnnotateApiCalls();
-        log($"  {_db.Funcs.Count:N0} fonksiyon, {_db.XFrom.Count:N0} xref kaynağı, {_db.Strings.Count:N0} string bulundu.");
+        log(Loc.F("  {0} fonksiyon, {1} xref kaynağı, {2} string bulundu.", _db.Funcs.Count, _db.XFrom.Count, _db.Strings.Count));
     }
 
     private void MarkExterns()
@@ -115,7 +115,7 @@ public sealed class AutoAnalysis
         {
             var ea = _fq.Dequeue();
             MakeFunction(ea);
-            if (++n % 2000 == 0) Progress?.Invoke($"AU: {_db.Funcs.Count:N0} fonksiyon, kuyruk {_fq.Count:N0}");
+            if (++n % 2000 == 0) Progress?.Invoke(Loc.F("AU: {0} fonksiyon, kuyruk {1}", _db.Funcs.Count, _fq.Count));
         }
     }
 

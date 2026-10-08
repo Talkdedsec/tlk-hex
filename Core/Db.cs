@@ -561,9 +561,9 @@ public sealed class Db
             Dirty = true;
             return null;
         }
-        if (!IsValidName(name)) return "Geçersiz isim: " + name;
+        if (!IsValidName(name)) return Loc.T("Geçersiz isim: ") + name;
         if (NameIndex().TryGetValue(name, out var other) && other != ea)
-            return $"'{name}' ismi zaten {AddrStr(other)} adresinde kullanılıyor.";
+            return Loc.F("'{0}' ismi zaten {1} adresinde kullanılıyor.", name, AddrStr(other));
         UserNames[ea] = name;
         InvalidateNames();
         Dirty = true;

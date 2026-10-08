@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _cfg = Settings.Load();
+        Loc.Lang = _cfg.Lang == "en" ? "en" : "tr";
         Theme.Apply(_cfg.ThemeName);
         Theme.SetBackground(_cfg.BackgroundOn, _cfg.BackgroundPath, _cfg.BackgroundDim);
 
@@ -187,7 +188,7 @@ public partial class MainWindow : Window
         fpane.Children.Add(_funcAnch);
         var lpane = new LayoutAnchorablePane { DockHeight = new GridLength(1, GridUnitType.Star) };
         _overAnch = new LayoutAnchorable { Title = "Graph overview", ContentId = "overview", Content = _ov, CanClose = false };
-        _treeAnch = new LayoutAnchorable { Title = "Fonksiyon ağaçı", ContentId = "calltree", Content = _ct, CanClose = false };
+        _treeAnch = new LayoutAnchorable { Title = Loc.T("Fonksiyon ağaçı"), ContentId = "calltree", Content = _ct, CanClose = false };
         lpane.Children.Add(_overAnch);
         lpane.Children.Add(_treeAnch);
         left.Children.Add(fpane);
@@ -198,7 +199,7 @@ public partial class MainWindow : Window
         var opane = new LayoutAnchorablePane { DockHeight = new GridLength(230) };
         _outAnch = new LayoutAnchorable { Title = "Output", ContentId = "output", Content = _out, CanClose = false };
         opane.Children.Add(_outAnch);
-        _searchAnch = new LayoutAnchorable { Title = "Arama", ContentId = "search", Content = _sp, CanClose = false };
+        _searchAnch = new LayoutAnchorable { Title = Loc.T("Arama"), ContentId = "search", Content = _sp, CanClose = false };
         opane.Children.Add(_searchAnch);
         opane.SelectedContentIndex = 0;
         vert.Children.Add(horiz);
@@ -278,6 +279,7 @@ public partial class MainWindow : Window
 
     private LayoutDocument ShowDoc(string id, string title, object content, bool canClose = true, bool activate = true)
     {
+        title = Loc.T(title);
         if (_docs.TryGetValue(id, out var d) && d.Parent != null)
         {
             d.Title = title;
@@ -351,14 +353,14 @@ public partial class MainWindow : Window
 
     private MenuItem TopMenu(string header)
     {
-        var m = new MenuItem { Header = header };
+        var m = new MenuItem { Header = Loc.T(header) };
         MainMenu.Items.Add(m);
         return m;
     }
 
     private MenuItem Add(ItemsControl parent, string header, string gesture, Action act, bool needFile = true)
     {
-        var mi = new MenuItem { Header = header, InputGestureText = gesture };
+        var mi = new MenuItem { Header = Loc.T(header), InputGestureText = gesture };
         mi.Click += (_, _) => act();
         parent.Items.Add(mi);
         if (needFile) _needFile.Add(mi);
@@ -374,9 +376,9 @@ public partial class MainWindow : Window
         var file = TopMenu("_Dosya");
         Add(file, "Aç...", "Ctrl+O", () => OpenDialog(), false);
         Add(file, "Gelişmiş seçeneklerle aç...", "", () => OpenDialog(true), false);
-        _recentMenu = new MenuItem { Header = "Son açılanlar" };
+        _recentMenu = new MenuItem { Header = Loc.T("Son açılanlar") };
         _recentMenu.SubmenuOpened += (_, _) => FillRecent();
-        _recentMenu.Items.Add(new MenuItem { Header = "(boş)" });
+        _recentMenu.Items.Add(new MenuItem { Header = Loc.T("(boş)") });
         file.Items.Add(_recentMenu);
         Sep(file);
         Add(file, "Veritabanını kaydet", "Ctrl+W", SaveDb);
@@ -388,7 +390,7 @@ public partial class MainWindow : Window
         Add(file, "Başka dosyayla karşılaştır... (BinDiff)", "", CompareWith);
         Add(file, "Kütüphane imzası uygula (.sig)...", "", ApplySignatures);
         Sep(file);
-        var produce = new MenuItem { Header = "Dosya üret" };
+        var produce = new MenuItem { Header = Loc.T("Dosya üret") };
         file.Items.Add(produce);
         _needFile.Add(produce);
         Add(produce, "ASM dosyası oluştur...", "Alt+F10", () => ExportListing(false));
@@ -417,12 +419,12 @@ public partial class MainWindow : Window
         Add(edit, "Yorum...", ";", () => Comment(false));
         Add(edit, "Tekrarlanan yorum...", ":", () => Comment(true));
         Sep(edit);
-        var fn = new MenuItem { Header = "Fonksiyonlar" };
+        var fn = new MenuItem { Header = Loc.T("Fonksiyonlar") };
         edit.Items.Add(fn);
         _needFile.Add(fn);
         Add(fn, "Fonksiyon oluştur", "P", () => DoOp("P"));
         Add(fn, "Fonksiyonu sil", "", () => DoOp("DF"));
-        var patch = new MenuItem { Header = "Programı yamala" };
+        var patch = new MenuItem { Header = Loc.T("Programı yamala") };
         edit.Items.Add(patch);
         _needFile.Add(patch);
         Add(patch, "Bayt değiştir...", "", PatchBytesDialog);
@@ -464,7 +466,7 @@ public partial class MainWindow : Window
         Add(search, "Arama yönü: aşağı/yukarı", "", () => { _searchUp = !_searchUp; DirText.Text = _searchUp ? "Up" : "Down"; }, false);
 
         var view = TopMenu("_Görünüm");
-        var sub = new MenuItem { Header = "Alt görünümleri aç" };
+        var sub = new MenuItem { Header = Loc.T("Alt görünümleri aç") };
         view.Items.Add(sub);
         Add(sub, "Disassembly (IDA View-A)", "", () => { ShowDoc("idaview", "IDA View-A", _idaPane, false); FocusIda(); }, false);
         Add(sub, "Hex dump (Hex View-1)", "", () => ShowDoc("hexview", "Hex View-1", _hv), false);
@@ -497,11 +499,11 @@ public partial class MainWindow : Window
         foreach (var (h, g) in new[] { ("Hata ayıklayıcı seç...", ""), ("İşlemi başlat", "F9"), ("İşlemi sonlandır", "Ctrl+F2"),
                      ("Kesme noktası ekle/kaldır", "F2"), ("Adım adım (into)", "F7"), ("Adım adım (over)", "F8") })
         {
-            var mi = new MenuItem { Header = h, InputGestureText = g, IsEnabled = false };
+            var mi = new MenuItem { Header = Loc.T(h), InputGestureText = g, IsEnabled = false };
             dbg.Items.Add(mi);
         }
         Sep(dbg);
-        dbg.Items.Add(new MenuItem { Header = "(Bu sürümde hata ayıklayıcı yok - statik analiz)", IsEnabled = false });
+        dbg.Items.Add(new MenuItem { Header = Loc.T("(Bu sürümde hata ayıklayıcı yok - statik analiz)"), IsEnabled = false });
 
         var opt = TopMenu("_Seçenekler");
         Add(opt, "Genel...", "", OpenSettings, false);
@@ -544,18 +546,18 @@ public partial class MainWindow : Window
         Add(help, "IDC komutları", "", () => _out.Log(IdcHelp), false);
         Sep(help);
         Add(help, "Hakkında", "", () => Dialogs.Info(this, "tlk-hex hakkında",
-            "tlk-hex - interaktif disassembler\n\nx86 / x64 PE, ELF ve ham binary için statik analiz:\n" +
-            "otomatik analiz, xref'ler, graph görünümü, hex view, yamalama,\nbasit pseudocode ve AI desteği.\n\n" +
-            "Disassembly motoru: Iced\nPencere yerleşimi: AvalonDock\n\n" +
-            "Yazar: Talkdedsec\nhttps://github.com/Talkdedsec/tlk-hex\n" +
-            "Lisans: MIT + Commons Clause (satış yasak, atıf zorunlu)\n© 2026 Talkdedsec"), false);
+            Loc.T("tlk-hex - interaktif disassembler\n\nx86 / x64 PE, ELF ve ham binary için statik analiz:\n") +
+            Loc.T("otomatik analiz, xref'ler, graph görünümü, hex view, yamalama,\nbasit pseudocode ve AI desteği.\n\n") +
+            Loc.T("Disassembly motoru: Iced\nPencere yerleşimi: AvalonDock\n\n") +
+            Loc.T("Yazar: Talkdedsec\nhttps://github.com/Talkdedsec/tlk-hex\n") +
+            Loc.T("Lisans: MIT + Commons Clause (satış yasak, atıf zorunlu)\n© 2026 Talkdedsec")), false);
     }
 
     private void FillRecent()
     {
         _recentMenu.Items.Clear();
         var r = RecentFiles.Load();
-        if (r.Count == 0) _recentMenu.Items.Add(new MenuItem { Header = "(boş)", IsEnabled = false });
+        if (r.Count == 0) _recentMenu.Items.Add(new MenuItem { Header = Loc.T("(boş)"), IsEnabled = false });
         int i = 1;
         foreach (var p in r)
         {
@@ -582,12 +584,12 @@ public partial class MainWindow : Window
             if (color is Color c) tb.Foreground = new SolidColorBrush(c);
             else tb.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
             object content = tb;
-            var b = new Button { ToolTip = tip, Style = (Style)FindResource("Tb") };
+            var b = new Button { ToolTip = Loc.T(tip), Style = (Style)FindResource("Tb") };
             if (label != null)
             {
                 var sp = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 0, 6, 0) };
                 sp.Children.Add(tb);
-                var lt = new TextBlock { Text = label, Margin = new Thickness(5, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+                var lt = new TextBlock { Text = Loc.T(label), Margin = new Thickness(5, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
                 lt.SetResourceReference(TextBlock.ForegroundProperty, "TextBrush");
                 sp.Children.Add(lt);
                 content = sp;
@@ -640,15 +642,15 @@ public partial class MainWindow : Window
     {
         var dlg = new OpenFileDialog
         {
-            Title = "Arka plan görseli seç",
-            Filter = "Gorseller|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff|Tüm dosyalar (*.*)|*.*",
+            Title = Loc.T("Arka plan görseli seç"),
+            Filter = Loc.T("Gorseller|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff|Tüm dosyalar (*.*)|*.*"),
         };
         if (dlg.ShowDialog(this) != true) return;
         _cfg.BackgroundPath = dlg.FileName;
         _cfg.BackgroundOn = true;
         _cfg.Save();
         Theme.SetBackground(true, dlg.FileName, _cfg.BackgroundDim);
-        if (Theme.BgImage == null) _out.Log("Görsel yüklenemedi: " + dlg.FileName);
+        if (Theme.BgImage == null) _out.Log(Loc.T("Görsel yüklenemedi: ") + dlg.FileName);
     }
 
     private void SetTheme(string name)
@@ -670,9 +672,13 @@ public partial class MainWindow : Window
         var w = new SettingsWindow(_cfg) { Owner = this };
         if (w.ShowDialog() != true) return;
         bool themeChanged = w.Result.ThemeName != _cfg.ThemeName;
+        bool langChanged = w.Result.Lang != _cfg.Lang;
         int oldMin = _cfg.MinStrLen;
         _cfg = w.Result;
         _cfg.Save();
+        if (langChanged)
+            Dialogs.Info(this, Loc.T("Arayüz dili"),
+                Loc.T("Dil değişikliği uygulamayı yeniden başlatınca geçerli olur."));
         if (themeChanged) SetTheme(_cfg.ThemeName);
         Theme.SetBackground(_cfg.BackgroundOn, _cfg.BackgroundPath, _cfg.BackgroundDim);
         ApplyViewSettings();
@@ -701,10 +707,10 @@ public partial class MainWindow : Window
     private void SetAu(bool busy, string? text = null)
     {
         AuDot.Fill = new SolidColorBrush(busy ? Color.FromRgb(0xE8, 0xB0, 0x20) : Color.FromRgb(0x3C, 0xB0, 0x43));
-        AuText.Text = text ?? (busy ? "AU:  busy" : "AU:  idle");
+        AuText.Text = text != null ? Loc.T(text) : (busy ? "AU:  busy" : "AU:  idle");
     }
 
-    private void SetStatus(string s) => StatusMsg.Text = s;
+    private void SetStatus(string s) => StatusMsg.Text = Loc.T(s);
 
     private void UpdateDisk(string? path)
     {
@@ -714,7 +720,7 @@ public partial class MainWindow : Window
             if (root != null)
             {
                 var di = new DriveInfo(root);
-                DiskText.Text = $"Disk: {di.AvailableFreeSpace / (1L << 30)}GB";
+                DiskText.Text = Loc.F("Disk: {0}GB", di.AvailableFreeSpace / (1L << 30));
             }
         }
         catch { DiskText.Text = "Disk: -"; }
@@ -732,8 +738,8 @@ public partial class MainWindow : Window
     {
         var dlg = new OpenFileDialog
         {
-            Title = "Disassemble edilecek dosyayı seç",
-            Filter = "Çalıştırılabilir dosyalar|*.exe;*.dll;*.sys;*.ocx;*.cpl;*.scr;*.drv;*.efi;*.node;*.so;*.elf;*.o;*.bin|Tüm dosyalar (*.*)|*.*",
+            Title = Loc.T("Disassemble edilecek dosyayı seç"),
+            Filter = Loc.T("Çalıştırılabilir dosyalar|*.exe;*.dll;*.sys;*.ocx;*.cpl;*.scr;*.drv;*.efi;*.node;*.so;*.elf;*.o;*.bin|Tüm dosyalar (*.*)|*.*"),
         };
         if (dlg.ShowDialog(this) == true) OpenFile(dlg.FileName, advanced || _cfg.AskLoadOptions);
     }
@@ -754,7 +760,7 @@ public partial class MainWindow : Window
 
         byte[] bytes;
         try { bytes = File.ReadAllBytes(path); }
-        catch (Exception ex) { Dialogs.Info(this, "Hata", "Dosya okunamadı:\n" + ex.Message); return; }
+        catch (Exception ex) { Dialogs.Info(this, "Hata", Loc.T("Dosya okunamadı:\n") + ex.Message); return; }
 
         bool hasIdb = IdbStore.Exists(path);
         LoadOptions? opt;
@@ -792,8 +798,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            _out.Log("HATA: " + ex.Message);
-            Dialogs.Info(this, "Yükleme hatası", "Dosya analiz edilemedi:\n\n" + ex.Message);
+            _out.Log(Loc.T("HATA: ") + ex.Message);
+            Dialogs.Info(this, "Yükleme hatası", Loc.T("Dosya analiz edilemedi:\n\n") + ex.Message);
         }
         finally
         {
@@ -808,7 +814,7 @@ public partial class MainWindow : Window
         RecentFiles.Add(path);
         UpdateDisk(path);
         BindSession();
-        _out.Log($"Otomatik analiz tamamlandı ({sw.Elapsed.TotalSeconds:0.00} sn).");
+        _out.Log(Loc.F("Otomatik analiz tamamlandı ({0} sn).", sw.Elapsed.TotalSeconds.ToString("0.00")));
         if (s.Db.IsDotNet)
             _out.Log("Not: Bu bir .NET assembly; IL kodu yerine yalnızca yerel giriş kodu disassemble edildi.");
 
@@ -826,7 +832,7 @@ public partial class MainWindow : Window
         FocusIda();
         UpdateTitle();
         UpdateEnabled();
-        if (s.Db.SymbolSource != null) SetStatus("Semboller yüklendi: " + Path.GetFileName(s.Db.SymbolSource));
+        if (s.Db.SymbolSource != null) SetStatus(Loc.T("Semboller yüklendi: ") + Path.GetFileName(s.Db.SymbolSource));
         AfterOpenSymbols();
     }
 
@@ -891,10 +897,10 @@ public partial class MainWindow : Window
         try
         {
             IdbStore.Save(_s.Db, _s.Opt, Here());
-            _out.Log($"Veritabanı kaydedildi: {IdbStore.PathFor(_s.Db.FilePath)}");
+            _out.Log(Loc.F("Veritabanı kaydedildi: {0}", IdbStore.PathFor(_s.Db.FilePath)));
             SetStatus("Veritabanı kaydedildi.");
         }
-        catch (Exception ex) { _out.Log("Kaydetme hatası: " + ex.Message); }
+        catch (Exception ex) { _out.Log(Loc.T("Kaydetme hatası: ") + ex.Message); }
         UpdateTitle();
     }
 
@@ -944,7 +950,7 @@ public partial class MainWindow : Window
                 using var w = new StreamWriter(outp);
                 worker.Export(w, lst);
             });
-            _out.Log($"{(lst ? "LST" : "ASM")} dosyası oluşturuldu: {outp}");
+            _out.Log(Loc.F("{0} dosyası oluşturuldu: {1}", lst ? "LST" : "ASM", outp));
         }
         catch (Exception ex) { _out.Log("Hata: " + ex.Message); }
         SetAu(false);
@@ -957,7 +963,7 @@ public partial class MainWindow : Window
         var dlg = new SaveFileDialog { FileName = Path.GetFileNameWithoutExtension(_s.Db.FilePath) + ".dif", Filter = "DIF (*.dif)|*.dif" };
         if (dlg.ShowDialog(this) != true) return;
         _s.ExportDif(dlg.FileName);
-        _out.Log($"DIF dosyası oluşturuldu: {dlg.FileName}");
+        _out.Log(Loc.F("DIF dosyası oluşturuldu: {0}", dlg.FileName));
     }
 
     private void ApplyPatches()
@@ -966,16 +972,16 @@ public partial class MainWindow : Window
         if (_s.Db.Patches.Count == 0) { _out.Log("Uygulanacak yama yok."); return; }
         var dlg = new SaveFileDialog
         {
-            Title = "Yamalı dosyayı kaydet",
+            Title = Loc.T("Yamalı dosyayı kaydet"),
             FileName = Path.GetFileNameWithoutExtension(_s.Db.FilePath) + ".patched" + Path.GetExtension(_s.Db.FilePath),
-            Filter = "Tüm dosyalar (*.*)|*.*",
+            Filter = Loc.T("Tüm dosyalar (*.*)|*.*"),
         };
         if (dlg.ShowDialog(this) != true) return;
         if (string.Equals(Path.GetFullPath(dlg.FileName), Path.GetFullPath(_s.Db.FilePath), StringComparison.OrdinalIgnoreCase)
             && !Dialogs.Confirm(this, "Uyarı", "Orijinal dosyanın üzerine yazılacak. Emin misin?"))
             return;
         int n = _s.ApplyPatchesToFile(dlg.FileName);
-        _out.Log($"{n} bayt yaması uygulandı: {dlg.FileName}");
+        _out.Log(Loc.F("{0} bayt yaması uygulandı: {1}", n, dlg.FileName));
     }
 
     private void ExportPseudo()
@@ -988,6 +994,6 @@ public partial class MainWindow : Window
         var lines = _pseudoFunc == f ? Enumerable.Range(0, (int)_pv.LineCountPublic).Select(i => _pv.LineAt(i).Plain)
             : _s.Pseudo.Decompile(f).Select(l => l.Plain);
         File.WriteAllLines(dlg.FileName, lines);
-        _out.Log($"Pseudocode kaydedildi: {dlg.FileName}");
+        _out.Log(Loc.F("Pseudocode kaydedildi: {0}", dlg.FileName));
     }
 }

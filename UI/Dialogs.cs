@@ -15,7 +15,7 @@ public static class Dialogs
     {
         var w = new Window
         {
-            Title = title,
+            Title = Loc.T(title),
             Width = width,
             SizeToContent = SizeToContent.Height,
             ResizeMode = ResizeMode.NoResize,
@@ -34,7 +34,7 @@ public static class Dialogs
 
     public static Button Btn(string text, bool def = false, bool cancel = false) => new()
     {
-        Content = text,
+        Content = Loc.T(text),
         MinWidth = 80,
         Height = 26,
         Margin = new Thickness(6, 0, 0, 0),
@@ -50,7 +50,7 @@ public static class Dialogs
         return sp;
     }
 
-    public static TextBlock Label(string t, double top = 0) => new() { Text = t, Margin = new Thickness(0, top, 0, 4) };
+    public static TextBlock Label(string t, double top = 0) => new() { Text = Loc.T(t), Margin = new Thickness(0, top, 0, 4) };
 
     // ================= Metin girisi (G, N, ; ...) =================
 
@@ -103,7 +103,7 @@ public static class Dialogs
             {
                 if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) { result = get(); w.DialogResult = true; e.Handled = true; }
             };
-            sp.Children.Add(new TextBlock { Text = "Ctrl+Enter = Tamam", Opacity = 0.6, FontSize = 11, Margin = new Thickness(0, 4, 0, 0) });
+            sp.Children.Add(new TextBlock { Text = Loc.T("Ctrl+Enter = Tamam"), Opacity = 0.6, FontSize = 11, Margin = new Thickness(0, 4, 0, 0) });
         }
         sp.Children.Add(Buttons(ok, cancel));
         w.Content = sp;
@@ -114,7 +114,7 @@ public static class Dialogs
     {
         var w = Make(owner, title, 440);
         var sp = new StackPanel { Margin = new Thickness(14) };
-        sp.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap });
+        sp.Children.Add(new TextBlock { Text = Loc.T(text), TextWrapping = TextWrapping.Wrap });
         var yes = Btn("Evet", true);
         var no = Btn("Hayır", false, true);
         bool r = false;
@@ -131,7 +131,7 @@ public static class Dialogs
         var sp = new StackPanel { Margin = new Thickness(14) };
         sp.Children.Add(new TextBox
         {
-            Text = text, IsReadOnly = true, BorderThickness = new Thickness(0), Background = Brushes.Transparent,
+            Text = Loc.T(text), IsReadOnly = true, BorderThickness = new Thickness(0), Background = Brushes.Transparent,
             TextWrapping = TextWrapping.Wrap, FontFamily = new FontFamily("Consolas"), MaxHeight = 620,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         });
@@ -149,7 +149,7 @@ public static class Dialogs
         var sp = new StackPanel { Margin = new Thickness(14) };
         sp.Children.Add(new TextBlock
         {
-            Text = $"'{file}' için yapılan değişiklikler (isimler, yorumlar, tanımlar, yamalar) kaydedilsin mi?",
+            Text = Loc.F("'{0}' için yapılan değişiklikler (isimler, yorumlar, tanımlar, yamalar) kaydedilsin mi?", file),
             TextWrapping = TextWrapping.Wrap,
         });
         bool? r = null;
@@ -213,7 +213,7 @@ public static class Dialogs
         useIdb = false;
         var w = Make(owner, "Yeni dosya yükle", 700);
         var sp = new StackPanel { Margin = new Thickness(14) };
-        sp.Children.Add(Label($"Yükle: {Path.GetFileName(path)}"));
+        sp.Children.Add(Label(Loc.F("Yükle: {0}", Path.GetFileName(path))));
         string det = Loaders.Detect(bytes);
         var loaders = new ListBox { Height = 86, FontFamily = new FontFamily("Consolas"), FontSize = 12.5 };
         var ids = new List<string>();
@@ -249,9 +249,9 @@ public static class Dialogs
 
         var right = new StackPanel { Margin = new Thickness(16, 0, 0, 0) };
         right.Children.Add(Label("Seçenekler"));
-        var cbAnalysis = new CheckBox { Content = "Otomatik analiz (Analysis enabled)", IsChecked = true, Margin = new Thickness(0, 2, 0, 2) };
-        var cbIdata = new CheckBox { Content = "Imports segmenti oluştur (.idata)", IsChecked = true, Margin = new Thickness(0, 2, 0, 2) };
-        var cbRsrc = new CheckBox { Content = "Kaynakları yükle (.rsrc)", IsChecked = false, Margin = new Thickness(0, 2, 0, 2) };
+        var cbAnalysis = new CheckBox { Content = Loc.T("Otomatik analiz (Analysis enabled)"), IsChecked = true, Margin = new Thickness(0, 2, 0, 2) };
+        var cbIdata = new CheckBox { Content = Loc.T("Imports segmenti oluştur (.idata)"), IsChecked = true, Margin = new Thickness(0, 2, 0, 2) };
+        var cbRsrc = new CheckBox { Content = Loc.T("Kaynakları yükle (.rsrc)"), IsChecked = false, Margin = new Thickness(0, 2, 0, 2) };
         right.Children.Add(cbAnalysis);
         right.Children.Add(cbIdata);
         right.Children.Add(cbRsrc);
@@ -260,7 +260,7 @@ public static class Dialogs
         {
             cbIdb = new CheckBox
             {
-                Content = "Kayıtlı veritabanını kullan (isim/yorum/islemler)",
+                Content = Loc.T("Kayıtlı veritabanını kullan (isim/yorum/islemler)"),
                 IsChecked = true,
                 Margin = new Thickness(0, 10, 0, 2),
                 FontWeight = FontWeights.SemiBold,
@@ -318,10 +318,10 @@ public static class Dialogs
         sp.Children.Add(Label(binary ? "Bayt dizisi (örnek: 48 8B ?? 24 veya \"metin\"):" : "Metin:"));
         var tb = new TextBox { Text = initial, FontFamily = new FontFamily("Consolas"), FontSize = 13, Padding = new Thickness(3, 2, 3, 2) };
         sp.Children.Add(tb);
-        var mc = new CheckBox { Content = "Büyük/küçük harf duyarlı", Margin = new Thickness(0, 8, 0, 0), Visibility = binary ? Visibility.Collapsed : Visibility.Visible };
-        var rx = new CheckBox { Content = "Düzenli ifade (regex)", Margin = new Thickness(0, 4, 0, 0), Visibility = binary ? Visibility.Collapsed : Visibility.Visible };
-        var up = new CheckBox { Content = "Yukarı doğru ara", Margin = new Thickness(0, 4, 0, 0) };
-        var all = new CheckBox { Content = "Tüm eşleşmeleri bul", Margin = new Thickness(0, 4, 0, 0) };
+        var mc = new CheckBox { Content = Loc.T("Büyük/küçük harf duyarlı"), Margin = new Thickness(0, 8, 0, 0), Visibility = binary ? Visibility.Collapsed : Visibility.Visible };
+        var rx = new CheckBox { Content = Loc.T("Düzenli ifade (regex)"), Margin = new Thickness(0, 4, 0, 0), Visibility = binary ? Visibility.Collapsed : Visibility.Visible };
+        var up = new CheckBox { Content = Loc.T("Yukarı doğru ara"), Margin = new Thickness(0, 4, 0, 0) };
+        var all = new CheckBox { Content = Loc.T("Tüm eşleşmeleri bul"), Margin = new Thickness(0, 4, 0, 0) };
         sp.Children.Add(mc);
         sp.Children.Add(rx);
         sp.Children.Add(up);
