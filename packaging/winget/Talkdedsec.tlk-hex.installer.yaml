@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 PackageIdentifier: Talkdedsec.tlk-hex
-PackageVersion: 0.1.5
+PackageVersion: 0.1.6
 InstallerType: portable
 Commands:
   - tlk-hex
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/Talkdedsec/tlk-hex/releases/download/v0.1.5/tlk-hex-v0.1.5-win-x64-portable.exe
-    InstallerSha256: 28d7145e795d2b48ebb6c7744a8e7ddc821be9a84a55aee80e2672f1cab4e2bc
+    InstallerUrl: https://github.com/Talkdedsec/tlk-hex/releases/download/v0.1.6/tlk-hex-v0.1.6-win-x64-portable.exe
+    InstallerSha256: dff7092be4cdbefba19793783c626b62a4c7cda4c02b07317f7c7f8ca03bcd50
 ManifestType: installer
 ManifestVersion: 1.6.0
