@@ -41,7 +41,7 @@ public partial class MainWindow
         if (_s == null) return;
         if (!_s.Db.IsMapped(ea))
         {
-            _out.Log($"Adres {Db.Hx(ea)} hiçbir segmentte değil.");
+            _out.Log(Loc.F("Adres {0} hiçbir segmentte değil.", Db.Hx(ea)));
             System.Media.SystemSounds.Beep.Play();
             return;
         }
@@ -460,7 +460,7 @@ public partial class MainWindow
         }
         if (ea is not ulong e || !_s.Db.IsMapped(e))
         {
-            _out.Log($"'{t}' çözülemedi ya da haritalanmamış.");
+            _out.Log(Loc.F("'{0}' çözülemedi ya da haritalanmamış.", t));
             System.Media.SystemSounds.Beep.Play();
             return;
         }

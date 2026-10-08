@@ -479,9 +479,9 @@ public sealed class CallTreePane : DockPanel
         var root = Item(_s.Db.FuncName(f), f.Start, "", Theme.P.NavFunc, false);
         var callers = Callers(f);
         var callees = Callees(f);
-        var up = Item($"Çağıranlar ({callers.Count})", null, "", Theme.P.EdgeTrue, false);
+        var up = Item(Loc.F("Çağıranlar ({0})", callers.Count), null, "", Theme.P.EdgeTrue, false);
         foreach (var c in callers) up.Items.Add(FuncItem(c.ea, c.name, c.isImport, true));
-        var down = Item($"Çağrılanlar ({callees.Count})", null, "", Theme.P.EdgeFalse, false);
+        var down = Item(Loc.F("Çağrılanlar ({0})", callees.Count), null, "", Theme.P.EdgeFalse, false);
         foreach (var c in callees) down.Items.Add(FuncItem(c.ea, c.name, c.isImport, false));
         root.Items.Add(up);
         root.Items.Add(down);

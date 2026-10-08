@@ -564,6 +564,7 @@ internal static class Translations
         ["kod"] = "code",
         ["adres"] = "address",
         ["Yükle: {0}"] = "Load: {0}",
+        ["// tlk-hex basit decompiler: goto tabanlı çeviri, kesin değil"] = "// tlk-hex simple decompiler: goto-based translation, not exact",
         ["Geçersiz isim: "] = "Invalid name: ",
         ["Geçersiz regex: "] = "Invalid regex: ",
         ["'{0}' ismi zaten {1} adresinde kullanılıyor."] = "The name '{0}' is already used at {1}.",

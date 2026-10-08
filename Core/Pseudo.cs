@@ -61,7 +61,7 @@ public sealed class Pseudo
         // basliklar
         var res = new List<Line>();
         var hdr = NewLine(f.Start, 0);
-        hdr.Toks.Add(new Tok("// tlk-hex basit decompiler: goto tabanlı çeviri, kesin değil", Tk.Cmt));
+        hdr.Toks.Add(new Tok(Loc.T("// tlk-hex basit decompiler: goto tabanlı çeviri, kesin değil"), Tk.Cmt));
         res.Add(hdr);
         var sig = NewLine(f.Start, 0);
         string rt = _db.Bitness == 64 ? "__int64" : "int";
