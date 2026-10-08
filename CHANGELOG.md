@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-10-08
+
+### Fixed
+- Localization completeness: translate the remaining few interpolated strings (unmapped-address and unresolved-name messages, the call-tree "Callers/Callees" headers and the pseudocode header comment) that were still showing in Turkish under the English UI.
+
 ## [0.1.6] - 2026-10-08
 
 ### Added
@@ -76,3 +81,4 @@ All notable changes to this project are documented here. The format is based on
 [0.1.4]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.4
 [0.1.5]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.5
 [0.1.6]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.6
+[0.1.7]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.7
