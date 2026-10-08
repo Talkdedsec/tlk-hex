@@ -40,9 +40,9 @@ public partial class MainWindow
         var sp = new StackPanel { Margin = new Thickness(14) };
         sp.Children.Add(new TextBlock
         {
-            Text = $"Bu dosyanın sembolleri ({pdb}) Microsoft sembol sunucusundan indirilebilir.\n\n" +
-                   "İndirilirse 'sub_140001A54' gibi isimler gerçek fonksiyon adlarıyla değişir " +
-                   "(Windows dosyalarında genelde işe yarar). Sunucuya yalnızca PDB adı ve kimliği gönderilir.",
+            Text = Loc.F("Bu dosyanın sembolleri ({0}) Microsoft sembol sunucusundan indirilebilir.\n\n", pdb) +
+                   Loc.T("İndirilirse 'sub_140001A54' gibi isimler gerçek fonksiyon adlarıyla değişir ") +
+                   Loc.T("(Windows dosyalarında genelde işe yarar). Sunucuya yalnızca PDB adı ve kimliği gönderilir."),
             TextWrapping = TextWrapping.Wrap,
         });
         string? r = null;
@@ -71,7 +71,7 @@ public partial class MainWindow
             var path = await Pdb.DownloadAsync(db, m => Dispatcher.BeginInvoke(() => _out.Log(m)), CancellationToken.None);
             if (path != null && _s != null && _s.Db == db) ApplySymbols(path);
         }
-        catch (Exception ex) { _out.Log("Sembol indirme hatası: " + ex.Message); }
+        catch (Exception ex) { _out.Log(Loc.T("Sembol indirme hatası: ") + ex.Message); }
         finally
         {
             _symBusy = false;
@@ -87,12 +87,12 @@ public partial class MainWindow
         try
         {
             var (n, nf) = _s.ApplyPdb(path);
-            _out.Log($"Semboller uygulandı: {n:N0} isim, {nf:N0} yeni fonksiyon.");
-            SetStatus($"Semboller yüklendi: {n:N0} isim.");
+            _out.Log(Loc.F("Semboller uygulandı: {0} isim, {1} yeni fonksiyon.", n, nf));
+            SetStatus(Loc.F("Semboller yüklendi: {0} isim.", n));
         }
         catch (Exception ex)
         {
-            _out.Log("PDB okunamadı: " + ex.Message);
+            _out.Log(Loc.T("PDB okunamadı: ") + ex.Message);
         }
         finally { Mouse.OverrideCursor = null; }
         _result = null;
@@ -110,7 +110,7 @@ public partial class MainWindow
     private void LoadPdbFile()
     {
         if (_s == null) return;
-        var dlg = new OpenFileDialog { Title = "PDB dosyası seç", Filter = "Program veritabanı (*.pdb)|*.pdb|Tüm dosyalar (*.*)|*.*" };
+        var dlg = new OpenFileDialog { Title = Loc.T("PDB dosyası seç"), Filter = Loc.T("Program veritabanı (*.pdb)|*.pdb|Tüm dosyalar (*.*)|*.*") };
         if (dlg.ShowDialog(this) != true) return;
         try
         {
@@ -121,7 +121,7 @@ public partial class MainWindow
                 !Dialogs.Confirm(this, "PDB eşleşmiyor", "Bu PDB dosyanın kimliğiyle eşleşmiyor; isimler yanlış olabilir. Yine de yüklensin mi?"))
                 return;
         }
-        catch (Exception ex) { Dialogs.Info(this, "PDB", "Okunamadı: " + ex.Message); return; }
+        catch (Exception ex) { Dialogs.Info(this, "PDB", Loc.T("Okunamadı: ") + ex.Message); return; }
         ApplySymbols(dlg.FileName);
     }
 }

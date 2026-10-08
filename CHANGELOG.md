@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-08
+
+### Added
+- Full in-app English localization alongside Turkish. Pick the interface language in *Options → General → Interface language*; the change applies on restart (Turkish stays the default). The whole UI is covered — menus, toolbar, dialogs, panes, column headers, the welcome screen, the quick guide and shortcuts, findings, the analysis report and status/log messages.
+
 ## [0.1.5] - 2026-10-06
 
 ### Added
@@ -70,3 +75,4 @@ All notable changes to this project are documented here. The format is based on
 [0.1.3]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.3
 [0.1.4]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.4
 [0.1.5]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.5
+[0.1.6]: https://github.com/Talkdedsec/tlk-hex/releases/tag/v0.1.6

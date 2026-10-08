@@ -16,9 +16,9 @@ public static class Report
         string imphash = r.Findings.FirstOrDefault(f => f.Title == "imphash")?.Detail.Split(' ').FirstOrDefault() ?? "—";
         string bits = r.Architecture == "x64" ? "64-bit" : r.Architecture == "x86" ? "32-bit" : r.Architecture;
 
-        sb.Append($@"<!doctype html><html lang=""tr""><head><meta charset=""utf-8"">
+        sb.Append($@"<!doctype html><html lang=""{(Loc.En ? "en" : "tr")}""><head><meta charset=""utf-8"">
 <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
-<title>{E(name)} — analiz raporu</title>
+<title>{E(name)} — {Loc.TE("analiz raporu","analysis report")}</title>
 <style>
 :root{{--bg:#09080d;--bg2:#0e0c14;--line:#1c1826;--ink:#e7e5ef;--dim:#8e8aa0;--acc:#9d7cf0;--hi:#e0463a;--md:#d08a10;--lo:#3a7bd5;--mono:'Cascadia Mono','Consolas',ui-monospace,monospace}}
 *{{box-sizing:border-box}}
@@ -46,40 +46,40 @@ footer{{color:var(--dim);font-size:12px;border-top:1px solid var(--line);margin-
 a{{color:var(--acc)}}
 </style></head><body>
 <header><div class=""wrap"">
-<h1>tlk<span class=""acc"">-</span>hex · analiz raporu</h1>
-<div class=""sub"">{E(name)} — {bits} {E(r.FileType)}{(r.IsDotNet ? " · .NET" : "")}{(r.IsSigned ? " · imzalı" : " · imzasız")}</div>
+<h1>tlk<span class=""acc"">-</span>hex · {Loc.TE("analiz raporu","analysis report")}</h1>
+<div class=""sub"">{E(name)} — {bits} {E(r.FileType)}{(r.IsDotNet ? " · .NET" : "")}{(r.IsSigned ? Loc.TE(" · imzalı"," · signed") : Loc.TE(" · imzasız"," · unsigned"))}</div>
 </div></header>
 <div class=""wrap"">");
 
         // Ozet kartlari
         sb.Append("<div class=\"grid\">");
-        Kv(sb, "Dosya", name);
-        Kv(sb, "Boyut", FormatSize(r.FileSize));
-        Kv(sb, "Mimari", $"{bits} ({E(r.Architecture)})");
-        Kv(sb, "Giriş noktası", r.EntryPoint);
+        Kv(sb, Loc.TE("Dosya","File"), name);
+        Kv(sb, Loc.TE("Boyut","Size"), FormatSize(r.FileSize));
+        Kv(sb, Loc.TE("Mimari","Architecture"), $"{bits} ({E(r.Architecture)})");
+        Kv(sb, Loc.TE("Giriş noktası","Entry point"), r.EntryPoint);
         Kv(sb, "Image base", r.ImageBase);
-        Kv(sb, "Derleme zamanı", r.Timestamp);
+        Kv(sb, Loc.TE("Derleme zamanı","Build time"), r.Timestamp);
         Kv(sb, "imphash", imphash);
-        Kv(sb, "İmza", r.IsSigned ? "var" : "yok");
+        Kv(sb, Loc.TE("İmza","Signature"), r.IsSigned ? Loc.TE("var","yes") : Loc.TE("yok","no"));
         sb.Append("</div>");
-        sb.Append($"<p class=\"sub\">{r.Imports.Count:N0} import · {r.Exports.Count:N0} export · {r.Functions.Count:N0} fonksiyon · {r.Strings.Count:N0} string · analiz {r.AnalysisSeconds:0.00} sn</p>");
+        sb.Append($"<p class=\"sub\">{r.Imports.Count:N0} {Loc.TE("import","imports")} · {r.Exports.Count:N0} {Loc.TE("export","exports")} · {r.Functions.Count:N0} {Loc.TE("fonksiyon","functions")} · {r.Strings.Count:N0} {Loc.TE("string","strings")} · {Loc.TE("analiz","analysis")} {r.AnalysisSeconds:0.00} {Loc.TE("sn","s")}</p>");
 
         // Bulgular
-        sb.Append("<h2>Bulgular</h2>");
-        if (r.Findings.Count == 0) sb.Append("<p class=\"sub\">Bulgu yok.</p>");
+        sb.Append($"<h2>{Loc.TE("Bulgular","Findings")}</h2>");
+        if (r.Findings.Count == 0) sb.Append($"<p class=\"sub\">{Loc.TE("Bulgu yok.","No findings.")}</p>");
         else
         {
-            sb.Append("<table><tr><th>Önem</th><th>Kategori</th><th>Bulgu</th><th>Ayrıntı</th></tr>");
+            sb.Append($"<table><tr><th>{Loc.TE("Önem","Severity")}</th><th>{Loc.TE("Kategori","Category")}</th><th>{Loc.TE("Bulgu","Finding")}</th><th>{Loc.TE("Ayrıntı","Detail")}</th></tr>");
             foreach (var f in r.Findings)
-                sb.Append($"<tr><td><span class=\"badge sev-{E(f.Severity)}\">{E(f.Severity)}</span></td>"
-                    + $"<td>{E(f.Category)}</td><td>{E(f.Title)}</td><td>{E(f.Detail)}</td></tr>");
+                sb.Append($"<tr><td><span class=\"badge sev-{E(f.Severity)}\">{E(Loc.T(f.Severity))}</span></td>"
+                    + $"<td>{E(Loc.T(f.Category))}</td><td>{E(f.Title)}</td><td>{E(f.Detail)}</td></tr>");
             sb.Append("</table>");
         }
 
         // Bolumler
         if (r.Sections.Count > 0)
         {
-            sb.Append("<h2>Bölümler</h2><table><tr><th>Ad</th><th>Sanal adres</th><th>Sanal boyut</th><th>Ham boyut</th><th>Entropi</th><th>Bayrak</th></tr>");
+            sb.Append($"<h2>{Loc.TE("Bölümler","Sections")}</h2><table><tr><th>{Loc.TE("Ad","Name")}</th><th>{Loc.TE("Sanal adres","Virtual address")}</th><th>{Loc.TE("Sanal boyut","Virtual size")}</th><th>{Loc.TE("Ham boyut","Raw size")}</th><th>{Loc.TE("Entropi","Entropy")}</th><th>{Loc.TE("Bayrak","Flags")}</th></tr>");
             foreach (var s in r.Sections)
                 sb.Append($"<tr><td class=\"mono\">{E(s.Name)}</td><td class=\"mono\">{E(s.VirtualAddress)}</td>"
                     + $"<td class=\"mono\">{E(s.VirtualSize)}</td><td class=\"mono\">{E(s.RawSize)}</td>"
@@ -90,9 +90,9 @@ a{{color:var(--acc)}}
         // Importlar (DLL'e gore grupli)
         if (r.Imports.Count > 0)
         {
-            sb.Append("<h2>Importlar (DLL başına)</h2>");
+            sb.Append($"<h2>{Loc.TE("Importlar (DLL başına)","Imports (per DLL)")}</h2>");
             var byDll = r.Imports.GroupBy(i => i.Dll).OrderByDescending(g => g.Count());
-            sb.Append("<table><tr><th>DLL</th><th>Sayı</th><th>Fonksiyonlar (ilk 30)</th></tr>");
+            sb.Append($"<table><tr><th>DLL</th><th>{Loc.TE("Sayı","Count")}</th><th>{Loc.TE("Fonksiyonlar (ilk 30)","Functions (first 30)")}</th></tr>");
             foreach (var g in byDll)
             {
                 var fns = string.Join(", ", g.Select(i => i.Function).Take(30));
@@ -106,22 +106,22 @@ a{{color:var(--acc)}}
         var urls = r.Strings.Where(s => s.Value.Contains("http://") || s.Value.Contains("https://")).Select(s => s.Value).Distinct().Take(40).ToList();
         if (urls.Count > 0)
         {
-            sb.Append("<h2>URL / bağlantı göstergeleri</h2><p>");
+            sb.Append($"<h2>{Loc.TE("URL / bağlantı göstergeleri","URL / link indicators")}</h2><p>");
             foreach (var u in urls) sb.Append($"<span class=\"pill\">{E(u)}</span>");
             sb.Append("</p>");
         }
         var longest = r.Strings.Where(s => s.Length >= 6).OrderByDescending(s => s.Length).Take(40).ToList();
         if (longest.Count > 0)
         {
-            sb.Append("<h2>En uzun stringler</h2><table><tr><th>Uzunluk</th><th>Kodlama</th><th>Değer</th></tr>");
+            sb.Append($"<h2>{Loc.TE("En uzun stringler","Longest strings")}</h2><table><tr><th>{Loc.TE("Uzunluk","Length")}</th><th>{Loc.TE("Kodlama","Encoding")}</th><th>{Loc.TE("Değer","Value")}</th></tr>");
             foreach (var s in longest)
                 sb.Append($"<tr><td class=\"mono\">{s.Length}</td><td class=\"mono\">{E(s.Encoding)}</td><td class=\"mono\">{E(Clip(s.Value, 180))}</td></tr>");
             sb.Append("</table>");
         }
 
         sb.Append($@"<footer>
-tlk-hex ile üretildi · <a href=""https://github.com/Talkdedsec/tlk-hex"">github.com/Talkdedsec/tlk-hex</a><br>
-Yalnızca yetkili analiz, eğitim ve araştırma içindir. Rapor {DateTime.Now:yyyy-MM-dd HH:mm} tarihinde oluşturuldu.
+{Loc.TE("tlk-hex ile üretildi","Generated with tlk-hex")} · <a href=""https://github.com/Talkdedsec/tlk-hex"">github.com/Talkdedsec/tlk-hex</a><br>
+{Loc.TE("Yalnızca yetkili analiz, eğitim ve araştırma içindir.","For authorized analysis, education and research only.")} {Loc.TE("Rapor","Report")} {DateTime.Now:yyyy-MM-dd HH:mm}.
 </footer></div></body></html>");
         return sb.ToString();
     }

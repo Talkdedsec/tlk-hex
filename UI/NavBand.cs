@@ -200,11 +200,11 @@ public sealed class NavBand : FrameworkElement
         if (EaAt(x) is not ulong ea) return;
         if (e.LeftButton == MouseButtonState.Pressed) Navigate?.Invoke(_s!.Db.HeadOf(ea));
         var s = _s!.Db.SegOf(ea);
-        string kind = Classify(ea) switch
+        string kind = Loc.T(Classify(ea) switch
         {
             1 => "Normal fonksiyon", 2 => "Kütüphane / thunk", 3 => "Komut (fonksiyon dışı)", 4 => "Veri",
             6 => "Dış sembol", _ => "Keşfedilmemiş",
-        };
+        });
         _tip.Content = $"{s?.Name}:{_s.Db.AddrStr(ea)}  -  {kind}";
     }
 }

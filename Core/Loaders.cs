@@ -111,7 +111,7 @@ public static class Loaders
         db.Entries.Add((opt.BinBase, "start", 0));
         db.OsType = "-";
         db.AppType = "Binary";
-        log($"  0. Segment oluşturuluyor ({db.AddrStr(s.Start)}-{db.AddrStr(s.End)}) seg000 ... OK");
+        log(Loc.F("  0. Segment oluşturuluyor ({0}-{1}) seg000 ... OK", db.AddrStr(s.Start), db.AddrStr(s.End)));
     }
 
     // ================= PE =================
@@ -232,7 +232,7 @@ public static class Loaders
             foreach (var s in add)
             {
                 db.Segs.Add(s);
-                log($"  {db.Segs.Count - 1}. Segment oluşturuluyor ({db.AddrStr(s.Start)}-{db.AddrStr(s.End)}) {s.Name} ... OK");
+                log(Loc.F("  {0}. Segment oluşturuluyor ({1}-{2}) {3} ... OK", db.Segs.Count - 1, db.AddrStr(s.Start), db.AddrStr(s.End), s.Name));
             }
         }
         db.Segs.Sort((a, c) => a.Start.CompareTo(c.Start));
@@ -301,7 +301,7 @@ public static class Loaders
                 }
             }
         }
-        if (db.Imports.Count > 0) log($"  {db.Imports.Count} import, {db.Imports.Select(i => i.Dll).Distinct().Count()} DLL");
+        if (db.Imports.Count > 0) log(Loc.F("  {0} import, {1} DLL", db.Imports.Count, db.Imports.Select(i => i.Dll).Distinct().Count()));
 
         // ---- export ----
         var (expRva, expSize) = Dir(0);
@@ -334,7 +334,7 @@ public static class Loaders
                     db.Entries.Add((ex.Ea, ex.Name, ex.Ordinal));
                 }
             }
-            log($"  {db.Exports.Count} export");
+            log(Loc.F("  {0} export", db.Exports.Count));
         }
 
         // ---- giris noktasi ----
@@ -381,7 +381,7 @@ public static class Loaders
                     chained = ((vf >> 3) & 4) != 0;
                 if (!chained) db.PdataEnds[db.ImageBase + beg] = db.ImageBase + end;
             }
-            log($"  .pdata: {db.PdataEnds.Count} fonksiyon kaydı");
+            log(Loc.F("  .pdata: {0} fonksiyon kaydı", db.PdataEnds.Count));
         }
 
         // ---- relocation ----
@@ -514,7 +514,7 @@ public static class Loaders
             s.SegType = s.X ? "Pure code" : nobits ? "Uninitialized" : "Pure data";
             if (db.Segs.Any(o => s.Start < o.End && o.Start < s.End)) continue;
             db.Segs.Add(s);
-            log($"  {db.Segs.Count - 1}. Segment oluşturuluyor ({db.AddrStr(s.Start)}-{db.AddrStr(s.End)}) {s.Name} ... OK");
+            log(Loc.F("  {0}. Segment oluşturuluyor ({1}-{2}) {3} ... OK", db.Segs.Count - 1, db.AddrStr(s.Start), db.AddrStr(s.End), s.Name));
         }
         db.Segs.Sort((a, c) => a.Start.CompareTo(c.Start));
         if (db.Segs.Count > 0) db.ImageBase = db.Segs.Min(s => s.Start);

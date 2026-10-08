@@ -38,7 +38,7 @@ public sealed class SearchPane : DockPanel
         _box = new TextBox { FontFamily = new FontFamily("Consolas"), FontSize = 13, Padding = new Thickness(4, 2, 4, 2), VerticalContentAlignment = VerticalAlignment.Center };
         _ph = new TextBlock
         {
-            Text = "Ara: isim, metin, komut, adres, bayt (48 8B ?? 05) ...",
+            Text = Loc.T("Ara: isim, metin, komut, adres, bayt (48 8B ?? 05) ..."),
             IsHitTestVisible = false,
             Margin = new Thickness(7, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
@@ -49,18 +49,18 @@ public sealed class SearchPane : DockPanel
         bar.Children.Add(boxHost);
 
         _scope = new ComboBox { Width = 175, Margin = new Thickness(6, 0, 0, 0) };
-        foreach (var s in Scopes) _scope.Items.Add(s.Label);
+        foreach (var s in Scopes) _scope.Items.Add(Loc.T(s.Label));
         _scope.SelectedIndex = 0;
         Grid.SetColumn(_scope, 1);
         bar.Children.Add(_scope);
 
-        _case = new CheckBox { Content = "Aa", ToolTip = "Büyük/küçük harf duyarlı", Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        _case = new CheckBox { Content = "Aa", ToolTip = Loc.T("Büyük/küçük harf duyarlı"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(_case, 2);
         bar.Children.Add(_case);
-        _regex = new CheckBox { Content = ".*", ToolTip = "Düzenli ifade (regex)", Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        _regex = new CheckBox { Content = ".*", ToolTip = Loc.T("Düzenli ifade (regex)"), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(_regex, 3);
         bar.Children.Add(_regex);
-        var go = new Button { Content = "Ara", Padding = new Thickness(14, 2, 14, 2), Margin = new Thickness(10, 0, 0, 0) };
+        var go = new Button { Content = Loc.T("Ara"), Padding = new Thickness(14, 2, 14, 2), Margin = new Thickness(10, 0, 0, 0) };
         Grid.SetColumn(go, 4);
         bar.Children.Add(go);
         SetDock(bar, Dock.Top);

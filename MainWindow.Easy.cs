@@ -52,7 +52,7 @@ public partial class MainWindow
         sp.Children.Add(brand);
         var sub = new TextBlock
         {
-            Text = "İnteraktif disassembler — EXE, DLL, SYS, ELF ve ham binary dosyalarını incele.",
+            Text = Loc.T("İnteraktif disassembler — EXE, DLL, SYS, ELF ve ham binary dosyalarını incele."),
             FontSize = 15,
             Margin = new Thickness(0, 2, 0, 22),
             TextWrapping = TextWrapping.Wrap,
@@ -67,7 +67,7 @@ public partial class MainWindow
 
         var drop = new TextBlock
         {
-            Text = "İpucu: dosyayı bu pencereye sürükleyip bırakman da yeterli.",
+            Text = Loc.T("İpucu: dosyayı bu pencereye sürükleyip bırakman da yeterli."),
             Margin = new Thickness(2, 14, 0, 26),
             FontSize = 13,
         };
@@ -105,7 +105,7 @@ public partial class MainWindow
             Margin = new Thickness(0, 0, 10, 0),
             Foreground = accent ? Brushes.White : null,
         });
-        var t = new TextBlock { Text = text, FontSize = 15, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        var t = new TextBlock { Text = Loc.T(text), FontSize = 15, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
         if (accent) t.Foreground = Brushes.White;
         sp.Children.Add(t);
         var k = new TextBlock { Text = "  " + key, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Opacity = 0.75 };
@@ -124,7 +124,7 @@ public partial class MainWindow
         _recentPanel.Children.Clear();
         var recent = RecentFiles.Load();
         if (recent.Count == 0) return;
-        var h = new TextBlock { Text = "SON AÇILANLAR", FontSize = 11.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 0, 0, 8) };
+        var h = new TextBlock { Text = Loc.T("SON AÇILANLAR"), FontSize = 11.5, FontWeight = FontWeights.SemiBold, Margin = new Thickness(2, 0, 0, 8) };
         h.SetResourceReference(TextBlock.ForegroundProperty, "TextDimBrush");
         _recentPanel.Children.Add(h);
         foreach (var p in recent.Take(7))
@@ -230,7 +230,7 @@ public partial class MainWindow
         if (db.ImportAt.TryGetValue(ea, out var imp))
         {
             res.Add(Head($"; Import: {imp.Dll}!{imp.Name}"));
-            res.Add(Head($"; {db.XrefsTo(ea).Count} yerde kullanılıyor"));
+            res.Add(Head(Loc.F("; {0} yerde kullanılıyor", db.XrefsTo(ea).Count)));
             return res;
         }
         var s = db.StringAt(db.HeadOf(ea));
@@ -272,7 +272,7 @@ public partial class MainWindow
         ulong ea = Here();
         string h;
         if (w != null && WordEa(w) is ulong t && t != _s.Db.HeadOf(ea))
-            h = $"'{w}':  çift tık / Enter = git   •   X = nereden kullanılıyor   •   N = yeniden adlandır   •   Esc = geri";
+            h = Loc.F("'{0}':  çift tık / Enter = git   •   X = nereden kullanılıyor   •   N = yeniden adlandır   •   Esc = geri", w);
         else if (_s.Db.FuncAt(ea) != null)
             h = "Space = graph/metin   •   F5 = pseudocode   •   ; = yorum   •   N = isim ver   •   X = referanslar   •   G = adrese git";
         else if (_s.Db.IsCode(_s.Db.HeadOf(ea)))
@@ -284,7 +284,7 @@ public partial class MainWindow
 
     // ================= Rehber =================
 
-    private const string Guide =
+    internal const string Guide =
         "NASIL KULLANILIR\n\n" +
         "1) Dosya aç: Ctrl+O, araç çubuğundaki 'Aç' ya da dosyayı pencereye sürükle.\n" +
         "   Analiz otomatik yapılır; birkaç saniye sürebilir (alt çubukta 'AU' göstergesi).\n\n" +
@@ -312,5 +312,5 @@ public partial class MainWindow
         "Alt çubuk, imlecin olduğu yere göre kullanılabilecek tuşları her zaman gösterir.\n\n" +
         "──────────────────────────────────────────\n\n";
 
-    private void ShowGuide() => Dialogs.Info(this, "Hızlı rehber", Guide + Dialogs.Shortcuts);
+    private void ShowGuide() => Dialogs.Info(this, "Hızlı rehber", Loc.T(Guide) + Loc.T(Dialogs.Shortcuts));
 }

@@ -233,7 +233,7 @@ public partial class MainWindow
                 if (ok) { au.Record(op, x); n++; }
                 x = op == "C" && _s.Db.IsCode(x) ? _s.Db.NextHead(x) : next;
             }
-            _out.Log($"{n} öğe {(op == "U" ? "tanimsiz yapildi" : "koda donusturuldu")}.");
+            _out.Log(Loc.F("{0} öğe {1}.", n, Loc.T(op == "U" ? "tanimsiz yapildi" : "koda donusturuldu")));
             _dv.SelAnchor = -1;
             AfterEdit(first);
             return;
@@ -263,7 +263,7 @@ public partial class MainWindow
             {
                 var f = _s.Db.FuncAt(ea);
                 if (f == null) { done = false; break; }
-                if (!Dialogs.Confirm(this, "Fonksiyonu sil", $"'{_s.Db.FuncName(f)}' fonksiyonu silinsin mi? (kod korunur)")) return;
+                if (!Dialogs.Confirm(this, "Fonksiyonu sil", Loc.F("'{0}' fonksiyonu silinsin mi? (kod korunur)", _s.Db.FuncName(f)))) return;
                 done = au.DeleteFunction(ea);
                 break;
             }
@@ -275,7 +275,7 @@ public partial class MainWindow
         if (!done)
         {
             System.Media.SystemSounds.Beep.Play();
-            SetStatus($"'{op}' komutu {_s.Db.AddrStr(ea)} adresinde uygulanamadı.");
+            SetStatus(Loc.F("'{0}' komutu {1} adresinde uygulanamadı.", op, _s.Db.AddrStr(ea)));
             return;
         }
         au.Record(op, ea, arg);
@@ -322,7 +322,7 @@ public partial class MainWindow
         if (_s == null) return;
         string cur = _s.Db.NameAt(target) ?? "";
         var name = Dialogs.Input(this, "Adresi yeniden adlandır",
-            $"Adres: {_s.Db.SegOf(target)?.Name}:{_s.Db.AddrStr(target)}\nIsim (boş = otomatik isim):", cur);
+            Loc.F("Adres: {0}:{1}\nIsim (boş = otomatik isim):", _s.Db.SegOf(target)?.Name ?? "", _s.Db.AddrStr(target)), cur);
         if (name == null) return;
         var err = _s.Db.SetUserName(target, name);
         if (err != null) { Dialogs.Info(this, "Hata", err); return; }
@@ -336,7 +336,7 @@ public partial class MainWindow
         var dict = repeatable ? _s.Db.RepComments : _s.Db.Comments;
         dict.TryGetValue(ea, out var cur);
         var t = Dialogs.Input(this, repeatable ? "Tekrarlanan yorum" : "Yorum",
-            $"{_s.Db.SegOf(ea)?.Name}:{_s.Db.AddrStr(ea)} için yorum:", cur ?? "", true);
+            Loc.F("{0}:{1} için yorum:", _s.Db.SegOf(ea)?.Name ?? "", _s.Db.AddrStr(ea)), cur ?? "", true);
         if (t == null) return;
         t = t.TrimEnd();
         if (t.Length == 0) dict.Remove(ea); else dict[ea] = t;
@@ -350,17 +350,17 @@ public partial class MainWindow
         var sb = new StringBuilder();
         for (int i = 0; i < 16; i++)
             if (_s.Db.TryByte(ea + (ulong)i, out var b)) sb.Append(b.ToString("X2")).Append(' ');
-        var t = Dialogs.Input(this, "Baytları yamala", $"Adres {_s.Db.AddrStr(ea)} - yeni baytlar (hex):", sb.ToString().Trim());
+        var t = Dialogs.Input(this, "Baytları yamala", Loc.F("Adres {0} - yeni baytlar (hex):", _s.Db.AddrStr(ea)), sb.ToString().Trim());
         if (t == null) return;
         var parts = t.Split(new[] { ' ', ',', '\t' }, StringSplitOptions.RemoveEmptyEntries);
         int n = 0;
         foreach (var p in parts)
         {
-            if (!byte.TryParse(p, NumberStyles.HexNumber, null, out var v)) { _out.Log($"Geçersiz bayt: {p}"); return; }
+            if (!byte.TryParse(p, NumberStyles.HexNumber, null, out var v)) { _out.Log(Loc.F("Geçersiz bayt: {0}", p)); return; }
             _s.Db.PatchByte(ea + (ulong)n++, v);
         }
         Reanalyze(ea);
-        _out.Log($"{n} bayt yamalandı @ {_s.Db.AddrStr(ea)}");
+        _out.Log(Loc.F("{0} bayt yamalandı @ {1}", n, _s.Db.AddrStr(ea)));
     }
 
     private void OnBytePatched(ulong ea)
@@ -427,8 +427,8 @@ public partial class MainWindow
         string name = _s.Db.RefName(target) ?? _s.Db.AddrStr(target);
         if (xs.Count == 0)
         {
-            SetStatus($"{name}: xref yok.");
-            _out.Log($"{name} için xref bulunamadı.");
+            SetStatus(Loc.F("{0}: xref yok.", name));
+            _out.Log(Loc.F("{0} için xref bulunamadı.", name));
             return;
         }
         var rows = xs.Select(x => new Row
@@ -436,7 +436,7 @@ public partial class MainWindow
             Ea = x.From,
             C = new[] { x.From < target ? "Up" : "Down", ((char)x.Type).ToString(), _s.Db.LocStr(x.From), InsnText(x.From) },
         }).ToList();
-        var r = Dialogs.Choose(this, $"{name} adresine xref'ler", new[] { ("Direction", 70.0), ("Type", 45.0), ("Address", 230.0), ("Text", -1.0) },
+        var r = Dialogs.Choose(this, Loc.F("{0} adresine xref'ler", name), new[] { ("Direction", 70.0), ("Type", 45.0), ("Address", 230.0), ("Text", -1.0) },
             rows, null, 860, 420);
         if (r != null) Jump(r.Ea);
     }
@@ -452,7 +452,7 @@ public partial class MainWindow
             Ea = x.To,
             C = new[] { ((char)x.Type).ToString(), _s.Db.RefName(x.To) ?? _s.Db.AddrStr(x.To), _s.Db.AddrStr(x.To) },
         }).ToList();
-        var r = Dialogs.Choose(this, $"{_s.Db.AddrStr(ea)} adresinden xref'ler", new[] { ("Type", 45.0), ("Target", 300.0), ("Address", -1.0) },
+        var r = Dialogs.Choose(this, Loc.F("{0} adresinden xref'ler", _s.Db.AddrStr(ea)), new[] { ("Type", 45.0), ("Target", 300.0), ("Address", -1.0) },
             rows, null, 640, 360);
         if (r != null) Jump(r.Ea);
     }
@@ -476,8 +476,8 @@ public partial class MainWindow
                 rows.Add(new Row { Ea = ea, C = new[] { t, _s.Db.LocStr(ea), InsnText(ea) } });
             }
         }
-        if (rows.Count == 0) { SetStatus($"{name}: referans yok."); return; }
-        var r = Dialogs.Choose(this, $"Yığın değişkeni {name} xref'leri", new[] { ("Type", 45.0), ("Address", 230.0), ("Text", -1.0) },
+        if (rows.Count == 0) { SetStatus(Loc.F("{0}: referans yok.", name)); return; }
+        var r = Dialogs.Choose(this, Loc.F("Yığın değişkeni {0} xref'leri", name), new[] { ("Type", 45.0), ("Address", 230.0), ("Text", -1.0) },
             rows, null, 760, 380);
         if (r != null) Jump(r.Ea);
     }
@@ -489,7 +489,7 @@ public partial class MainWindow
         _searchCts?.Cancel();
         _searchCts = new CancellationTokenSource();
         SetAu(true, "AU:  aranıyor");
-        SetStatus($"{what} aranıyor... (Esc ile iptal)");
+        SetStatus(Loc.F("{0} aranıyor... (Esc ile iptal)", what));
         Mouse.OverrideCursor = Cursors.AppStarting;
         PreviewKeyDown += CancelSearchKey;
     }
@@ -548,7 +548,7 @@ public partial class MainWindow
             {
                 long from = up ? start - 1 : start + 1;
                 long hit = await Task.Run(() => worker.FindText(q.Text, from, !up, q.MatchCase, q.Regex, ct), ct);
-                if (hit < 0) { SetStatus($"'{q.Text}' bulunamadı."); System.Media.SystemSounds.Beep.Play(); }
+                if (hit < 0) { SetStatus(Loc.F("'{0}' bulunamadı.", q.Text)); System.Media.SystemSounds.Beep.Play(); }
                 else
                 {
                     ulong ea = _s.List.EaOfLine(hit);
@@ -561,12 +561,12 @@ public partial class MainWindow
                         _dv.HighlightWord = q.Regex ? null : q.Text;
                         _dv.Focus();
                     }
-                    SetStatus($"'{q.Text}' bulundu: {_s.Db.AddrStr(ea)}");
+                    SetStatus(Loc.F("'{0}' bulundu: {1}", q.Text, _s.Db.AddrStr(ea)));
                 }
             }
         }
         catch (OperationCanceledException) { SetStatus("Arama iptal edildi."); }
-        catch (Exception ex) { _out.Log("Arama hatası: " + ex.Message); }
+        catch (Exception ex) { _out.Log(Loc.T("Arama hatası: ") + ex.Message); }
         finally { EndSearch(); }
     }
 
@@ -625,12 +625,12 @@ public partial class MainWindow
             _lastBin = q;
         }
         var pp = ParsePattern(q.Text);
-        if (pp == null) { _out.Log("Geçersiz bayt dizisi: " + q.Text); return; }
+        if (pp == null) { _out.Log(Loc.T("Geçersiz bayt dizisi: ") + q.Text); return; }
         var (pat, mask) = pp.Value;
         var db = _s.Db;
         ulong here = Here();
         bool up = q.Up;
-        BeginSearch("Bayt dizisi");
+        BeginSearch(Loc.T("Bayt dizisi"));
         var ct = _searchCts!.Token;
         try
         {
@@ -659,7 +659,7 @@ public partial class MainWindow
             }, ct);
             if (q.All) ShowOccurrences("Bayt: " + q.Text, hits.Select(e => (e, "")).ToList());
             else if (hits.Count == 0) { SetStatus("Bayt dizisi bulunamadı."); System.Media.SystemSounds.Beep.Play(); }
-            else { Jump(db.HeadOf(hits[0])); SetStatus($"Bulundu: {db.AddrStr(hits[0])}"); }
+            else { Jump(db.HeadOf(hits[0])); SetStatus(Loc.F("Bulundu: {0}", db.AddrStr(hits[0]))); }
         }
         catch (OperationCanceledException) { SetStatus("Arama iptal edildi."); }
         finally { EndSearch(); }
@@ -674,7 +674,7 @@ public partial class MainWindow
         if (v is not ulong val) { _out.Log("Geçersiz değer."); return; }
         var db = _s.Db;
         var dis = new Disasm(db);
-        BeginSearch("Sabit değer");
+        BeginSearch(Loc.T("Sabit değer"));
         var ct = _searchCts!.Token;
         try
         {
@@ -728,7 +728,7 @@ public partial class MainWindow
         _lists.Remove("occ");
         if (_docs.TryGetValue("occ", out var d)) d.Close();
         OpenList("occ", "Occurrences - " + title, new[] { ("Address", 180.0), ("Function", 200.0), ("Instruction", -1.0) }, () => rows);
-        _out.Log($"{title}: {hits.Count} eşleşme{(hits.Count >= 10000 ? " (ilk 10000)" : "")}.");
+        _out.Log(Loc.F("{0}: {1} eşleşme{2}.", title, hits.Count, hits.Count >= 10000 ? Loc.T(" (ilk 10000)") : ""));
     }
 
     private void NextKind(string what)
@@ -772,12 +772,12 @@ public partial class MainWindow
             var lines = _s.Pseudo.Decompile(f);
             _pseudoFunc = f;
             _pv.SetLines(lines);
-            _pseudoTitle.Text = "  " + _s.Db.FuncName(f) + "  (basit pseudocode - kesin değil)";
+            _pseudoTitle.Text = "  " + _s.Db.FuncName(f) + Loc.T("  (basit pseudocode - kesin değil)");
             ShowDoc("pseudo", "Pseudocode-A", _pseudoPane);
             _pv.SelectEa(Here());
             _pv.Focus();
         }
-        catch (Exception ex) { _out.Log("Pseudocode hatası: " + ex.Message); }
+        catch (Exception ex) { _out.Log(Loc.T("Pseudocode hatası: ") + ex.Message); }
     }
 
     private string FunctionAsm(Function f, int maxLines)
@@ -789,7 +789,7 @@ public partial class MainWindow
             foreach (var l in _s!.List.ItemLinesForGraph(ea))
             {
                 sb.AppendLine(_s.Db.AddrStr(ea) + "  " + l.Plain);
-                if (++n >= maxLines) { sb.AppendLine("... (kırpıldı)"); return sb.ToString(); }
+                if (++n >= maxLines) { sb.AppendLine(Loc.T("... (kırpıldı)")); return sb.ToString(); }
             }
         }
         return sb.ToString();
@@ -807,7 +807,7 @@ public partial class MainWindow
         }
         string asm = FunctionAsm(f, 1500);
         string fname = _s.Db.FuncName(f);
-        _pseudoTitle.Text = "  " + fname + "  (AI çalışıyor...)";
+        _pseudoTitle.Text = "  " + fname + Loc.T("  (AI çalışıyor...)");
         SetAu(true, "AU:  AI");
         string q = $"Asagidaki {_s.Db.Machine} fonksiyonunu ({fname}) Hex-Rays tarzı, okunabilir C pseudocode'una çevir. " +
                    "Sadece C kodunu ver (markdown kod bloğu kullanma), kısa Turkce yorumlar ekleyebilirsin. " +
@@ -817,7 +817,7 @@ public partial class MainWindow
         ans = Regex.Replace(ans, "^```[a-zA-Z]*\\s*|```\\s*$", "", RegexOptions.Multiline).Trim('\n', '\r');
         var lines = new List<Line>();
         var head = new Line { Ea = f.Start };
-        head.Toks.Add(new Tok("// AI ile üretildi - doğrulayarak kullan", Tk.Cmt));
+        head.Toks.Add(new Tok(Loc.T("// AI ile üretildi - doğrulayarak kullan"), Tk.Cmt));
         lines.Add(head);
         foreach (var raw in ans.Replace("\r", "").Split('\n')) lines.Add(CLine(raw, f.Start));
         _pseudoFunc = f;
@@ -911,7 +911,7 @@ public partial class MainWindow
         try
         {
             var r = EvalIdc(t);
-            string res = r is ulong v ? FormatNum(v) : r?.ToString() ?? "(boş)";
+            string res = r is ulong v ? FormatNum(v) : r?.ToString() ?? Loc.T("(boş)");
             _out.Log($"{t} = {res}");
             Dialogs.Info(this, "Sonuç", $"{t}\n\n{res}");
         }
@@ -928,19 +928,19 @@ public partial class MainWindow
         return sb.ToString();
     }
 
-    private const string IdcHelp =
-        "IDC komutları (Output > IDC):\n" +
-        "  here() / ScreenEA()           imlecin adresi\n" +
-        "  jumpto(ea) / Jump(ea)         adrese git\n" +
-        "  get_name(ea) / set_name(ea, \"isim\")\n" +
-        "  set_cmt(ea, \"yorum\", rep)    rep=1 tekrarlanan\n" +
+    private static string IdcHelp =>
+        Loc.T("IDC komutları (Output > IDC):\n") +
+        Loc.T("  here() / ScreenEA()           imlecin adresi\n") +
+        Loc.T("  jumpto(ea) / Jump(ea)         adrese git\n") +
+        Loc.T("  get_name(ea) / set_name(ea, \"isim\")\n") +
+        Loc.T("  set_cmt(ea, \"yorum\", rep)    rep=1 tekrarlanan\n") +
         "  get_func_name(ea)  get_func_start(ea)  get_func_end(ea)\n" +
         "  byte(ea) word(ea) dword(ea) qword(ea)\n" +
         "  get_bytes(ea, n)   patch_byte(ea, v)\n" +
         "  xrefs_to(ea)  xrefs_from(ea)  functions()  segments()\n" +
-        "  get_str(ea)   msg(\"metin\")   print(x)\n" +
-        "  Düz ifade de yazabilirsin: 0x401000+0x20, sub_401000+10h ...\n" +
-        "AI modunda: dosya/fonksiyon hakkında soru sor.";
+        Loc.T("  get_str(ea)   msg(\"metin\")   print(x)\n") +
+        Loc.T("  Düz ifade de yazabilirsin: 0x401000+0x20, sub_401000+10h ...\n") +
+        Loc.T("AI modunda: dosya/fonksiyon hakkında soru sor.");
 
     private async void OnCommand(string mode, string text)
     {
@@ -1001,7 +1001,7 @@ public partial class MainWindow
         public void End()
         {
             Ws();
-            if (_i < _s.Length) throw new Exception($"Beklenmeyen: '{_s[_i..]}'");
+            if (_i < _s.Length) throw new Exception(Loc.F("Beklenmeyen: '{0}'", _s[_i..]));
         }
 
         private static ulong U(object? o) => o is ulong v ? v : throw new Exception("Sayi bekleniyordu");
@@ -1036,8 +1036,8 @@ public partial class MainWindow
             while (true)
             {
                 if (Eat("*")) a = U(a) * U(Unary());
-                else if (Eat("/")) { var d = U(Unary()); if (d == 0) throw new Exception("Sıfıra bölme"); a = U(a) / d; }
-                else if (Eat("%")) { var d = U(Unary()); if (d == 0) throw new Exception("Sıfıra bölme"); a = U(a) % d; }
+                else if (Eat("/")) { var d = U(Unary()); if (d == 0) throw new Exception(Loc.T("Sıfıra bölme")); a = U(a) / d; }
+                else if (Eat("%")) { var d = U(Unary()); if (d == 0) throw new Exception(Loc.T("Sıfıra bölme")); a = U(a) % d; }
                 else return a;
             }
         }
@@ -1056,20 +1056,20 @@ public partial class MainWindow
         private object? Primary()
         {
             Ws();
-            if (_i >= _s.Length) throw new Exception("İfade eksik");
+            if (_i >= _s.Length) throw new Exception(Loc.T("İfade eksik"));
             if (Eat("(")) { var v = Expr(); if (!Eat(")")) throw new Exception("')' bekleniyordu"); return v; }
             char c = _s[_i];
             if (c == '"')
             {
                 int j = _s.IndexOf('"', _i + 1);
-                if (j < 0) throw new Exception("Kapanmamış string");
+                if (j < 0) throw new Exception(Loc.T("Kapanmamış string"));
                 var str = _s[(_i + 1)..j].Replace("\\n", "\n");
                 _i = j + 1;
                 return str;
             }
             int st = _i;
             while (_i < _s.Length && (char.IsLetterOrDigit(_s[_i]) || _s[_i] is '_' or '$' or '@' or '?' or '.' or ':')) _i++;
-            if (_i == st) throw new Exception($"Beklenmeyen karakter '{c}'");
+            if (_i == st) throw new Exception(Loc.F("Beklenmeyen karakter '{0}'", c));
             string id = _s[st.._i];
             if (Eat("("))
             {
@@ -1086,20 +1086,20 @@ public partial class MainWindow
                 ulong? n = id.StartsWith("0x", StringComparison.OrdinalIgnoreCase) || id.EndsWith('h') || id.EndsWith('H')
                     ? Db.ParseNum(id)
                     : id.All(char.IsDigit) ? ulong.Parse(id) : Db.ParseNum(id);
-                return n ?? throw new Exception("Geçersiz sayı: " + id);
+                return n ?? throw new Exception(Loc.T("Geçersiz sayı: ") + id);
             }
             if (id is "here" or "BADADDR") return id == "here" ? _w.Here() : ulong.MaxValue;
             var ea = _w._s?.Db.Resolve(id);
-            return ea ?? throw new Exception("Bilinmeyen isim: " + id);
+            return ea ?? throw new Exception(Loc.T("Bilinmeyen isim: ") + id);
         }
     }
 
     private object? IdcCall(string fn, List<object?> a)
     {
-        var db = _s?.Db ?? throw new Exception("Açık dosya yok");
-        ulong A(int i) => i < a.Count && a[i] is ulong v ? v : throw new Exception($"{fn}: {i + 1}. argüman sayı olmalı");
-        string S(int i) => i < a.Count && a[i] is string v ? v : throw new Exception($"{fn}: {i + 1}. argüman string olmalı");
-        ulong R(int n) => db.TryRead(A(0), n, out var v) ? v : throw new Exception("Okunamadı");
+        var db = _s?.Db ?? throw new Exception(Loc.T("Açık dosya yok"));
+        ulong A(int i) => i < a.Count && a[i] is ulong v ? v : throw new Exception(Loc.F("{0}: {1}. argüman sayı olmalı", fn, i + 1));
+        string S(int i) => i < a.Count && a[i] is string v ? v : throw new Exception(Loc.F("{0}: {1}. argüman string olmalı", fn, i + 1));
+        ulong R(int n) => db.TryRead(A(0), n, out var v) ? v : throw new Exception(Loc.T("Okunamadı"));
         switch (fn.ToLowerInvariant())
         {
             case "here": case "screenea": case "get_screen_ea": return Here();
@@ -1137,7 +1137,7 @@ public partial class MainWindow
             }
             case "patch_byte":
             {
-                if (!db.PatchByte(A(0), (byte)A(1))) throw new Exception("Yamalanamadı");
+                if (!db.PatchByte(A(0), (byte)A(1))) throw new Exception(Loc.T("Yamalanamadı"));
                 Reanalyze(A(0));
                 return 1UL;
             }
@@ -1151,7 +1151,7 @@ public partial class MainWindow
             case "msg": case "print": return a.Count == 0 ? "" : a[0] is ulong v ? FormatNum(v) : a[0]?.ToString();
             case "atoi": return ulong.TryParse(S(0), out var n) ? n : 0UL;
             case "help": return IdcHelp;
-            default: throw new Exception("Bilinmeyen fonksiyon: " + fn + "  (help yaz)");
+            default: throw new Exception(Loc.T("Bilinmeyen fonksiyon: ") + fn + Loc.T("  (help yaz)"));
         }
     }
 }

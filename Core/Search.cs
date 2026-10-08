@@ -29,7 +29,7 @@ public static class SearchEngine
             }
             catch (Exception ex)
             {
-                error = "Geçersiz regex: " + ex.Message;
+                error = Loc.T("Geçersiz regex: ") + ex.Message;
                 return null;
             }
         }
@@ -51,7 +51,7 @@ public static class SearchEngine
         if (sc is "imm")
         {
             var v = ParseValue(q.Text);
-            if (v == null) { error = "Geçersiz sayı: " + q.Text; return res; }
+            if (v == null) { error = Loc.T("Geçersiz sayı: ") + q.Text; return res; }
             Immediates(v.Value, db, worker, res, ct, max);
             return res;
         }

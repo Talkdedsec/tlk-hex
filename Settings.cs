@@ -13,6 +13,7 @@ public class Settings
     public double WinY { get; set; } = double.NaN;
     public bool WinMax { get; set; }
     public string ThemeName { get; set; } = "purple";       // light / dark / purple
+    public string Lang { get; set; } = "tr";                 // arayuz dili: tr / en
     public bool BackgroundOn { get; set; } = true;
     public string? BackgroundPath { get; set; }              // bos = gomulu varsayilan gorsel
     public double BackgroundDim { get; set; } = 0.15;        // gorsel ustu karartma (okunabilirlik)
