@@ -178,3 +178,7 @@ değil. Yalnızca yetkili olduğun dosyalarda kullan.
 **Lisans:** [MIT](LICENSE) © 2026 Talkdedsec.
 
 </details>
+
+<p align="center">
+  <sub>Built by <a href="https://talkdedsec.com">Talkdedsec</a></sub>
+</p>
