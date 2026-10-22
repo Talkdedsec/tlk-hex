@@ -43,7 +43,7 @@ jobs:
 
       - name: Create / update release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
         shell: bash
         run: |
           if ! gh release view "$VER" >/dev/null 2>&1; then
@@ -105,8 +105,8 @@ jobs:
               Set-Content $f -Encoding utf8
           }
 
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name  "Talkdedsec"
+          git config user.email "292909750+Talkdedsec@users.noreply.github.com"
           git fetch origin main
           git checkout main
           git add packaging/scoop/tlk-hex.json packaging/winget/
