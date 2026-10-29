@@ -303,3 +303,6 @@ a.inl:hover { border-bottom-color: var(--acc); }
 .lang a::before { content: none; }
 .lang a:hover { color: var(--ink); }
 .lang a.on { color: var(--acc); }
+.win-bar button.tab { font: inherit; background: none; border-top: 0; border-left: 0; border-bottom: 2px solid transparent; cursor: pointer; }
+.win-bar button.tab:hover { color: var(--ink); }
+.win-bar button.tab.on { border-bottom-color: var(--acc); }
